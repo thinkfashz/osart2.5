@@ -53,6 +53,14 @@ export async function POST(req: NextRequest) {
 async function handlePaymentSuccess(paymentIntent: any) {
     if (!supabase) return;
     const orderId = paymentIntent.metadata.orderId;
+
+    if (!orderId) {
+        console.error('No orderId in payment intent metadata');
+        return;
+    }
+
+    // Actualizar orden
+    const { error } = await supabase
         .from('orders')
         .update({
             payment_status: 'confirmed',
@@ -83,6 +91,14 @@ async function handlePaymentSuccess(paymentIntent: any) {
 async function handlePaymentFailed(paymentIntent: any) {
     if (!supabase) return;
     const orderId = paymentIntent.metadata.orderId;
+
+    if (!orderId) {
+        console.error('No orderId in payment intent metadata');
+        return;
+    }
+
+    // Actualizar orden
+    const { error } = await supabase
         .from('orders')
         .update({
             payment_status: 'failed',
@@ -110,6 +126,7 @@ async function handlePaymentFailed(paymentIntent: any) {
 }
 
 async function handlePaymentProcessing(paymentIntent: any) {
+    if (!supabase) return;
     const orderId = paymentIntent.metadata.orderId;
 
     if (!orderId) {
