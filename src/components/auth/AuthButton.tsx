@@ -16,6 +16,10 @@ export default function AuthButton() {
 
     useEffect(() => {
         const getUser = async () => {
+            if (!supabase) {
+                setLoading(false);
+                return;
+            }
             const { data: { user } } = await supabase.auth.getUser();
             setUser(user);
             if (user) {
@@ -31,10 +35,11 @@ export default function AuthButton() {
 
         getUser();
 
+        if (!supabase) return;
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: any, session: any) => {
             const currentUser = session?.user ?? null;
             setUser(currentUser);
-            if (currentUser) {
+            if (currentUser && supabase) {
                 const { data } = await supabase
                     .from("profiles")
                     .select("*")
@@ -51,6 +56,7 @@ export default function AuthButton() {
     }, []);
 
     const handleSignOut = async () => {
+        if (!supabase) return;
         await supabase.auth.signOut();
         setIsDropdownOpen(false);
     };

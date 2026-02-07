@@ -35,9 +35,14 @@ export default function SignupPage() {
     const onSubmit = async (data: FormData) => {
         setLoading(true);
         setError(null);
+        if (!supabase) {
+            setError("Sistema de registro no disponible.");
+            setLoading(false);
+            return;
+        }
 
         const { error: securityError } = await safeAction(async () => {
-            const { data: authData, error: authError } = await supabase.auth.signUp({
+            const { data: authData, error: authError } = await supabase!.auth.signUp({
                 email: data.email,
                 password: data.password,
                 options: {

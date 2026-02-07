@@ -10,6 +10,7 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean, onClos
     if (!isOpen) return null;
 
     const handleGoogleSignIn = async () => {
+        if (!supabase) return;
         const { error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {

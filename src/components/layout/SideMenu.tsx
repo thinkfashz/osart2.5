@@ -17,6 +17,7 @@ export default function SideMenu({ isOpen, onClose }: SideMenuProps) {
     const [user, setUser] = useState<SupabaseUser | null>(null);
 
     useEffect(() => {
+        if (!supabase) return;
         supabase.auth.getUser().then(({ data }: any) => {
             const { user } = data;
             setUser(user);
@@ -133,7 +134,7 @@ export default function SideMenu({ isOpen, onClose }: SideMenuProps) {
                         {/* Footer Control */}
                         <div className="mt-20 pt-8 border-t border-slate-900/5">
                             <button
-                                onClick={() => supabase.auth.signOut()}
+                                onClick={() => supabase?.auth.signOut()}
                                 className="w-full flex items-center justify-between p-8 rounded-[2rem] bg-cyber-red/5 hover:bg-cyber-red/10 border border-cyber-red/10 group transition-all"
                             >
                                 <div className="flex items-center gap-6">

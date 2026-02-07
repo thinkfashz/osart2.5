@@ -62,6 +62,7 @@ export default function ElectroGame() {
     };
 
     const saveProgress = async (finalXp: number) => {
+        if (!supabase) return;
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
 

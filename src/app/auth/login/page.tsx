@@ -31,9 +31,14 @@ export default function LoginPage() {
     const onSubmit = async (data: FormData) => {
         setLoading(true);
         setError(null);
+        if (!supabase) {
+            setError("Sistema de autenticación no disponible.");
+            setLoading(false);
+            return;
+        }
 
         const { error: securityError } = await safeAction(async () => {
-            const { error: authError } = await supabase.auth.signInWithPassword({
+            const { error: authError } = await supabase!.auth.signInWithPassword({
                 email: data.email,
                 password: data.password,
             });
@@ -48,6 +53,10 @@ export default function LoginPage() {
     };
 
     const handleOAuth = async (provider: 'google' | 'github') => {
+        if (!supabase) {
+            setError("Autenticación social no disponible.");
+            return;
+        }
         try {
             const { error } = await supabase.auth.signInWithOAuth({
                 provider,
