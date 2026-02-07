@@ -13,6 +13,7 @@ export const revalidate = 60;
 
 async function getProducts(): Promise<Product[]> {
   try {
+    if (!supabase) return dummyProducts.slice(0, 8);
     const { data, error } = await supabase
       .from("products")
       .select("*")
