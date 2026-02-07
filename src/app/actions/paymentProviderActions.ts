@@ -1,6 +1,5 @@
 "use server";
 
-import { supabase } from "@/lib/supabase";
 import { stripe } from "@/lib/stripe";
 import { getMercadoPago } from "@/lib/mercadopago";
 import { getPayPalClient } from "@/lib/paypal";
@@ -82,7 +81,6 @@ export async function checkMercadoPagoConnection(): Promise<PaymentProviderStatu
             };
         }
 
-        // MercadoPago está configurado
         return {
             provider: 'mercadopago',
             connected: true,
@@ -143,29 +141,21 @@ export async function checkPayPalConnection(): Promise<PaymentProviderStatus> {
 
 // Obtener estado de todos los proveedores
 export async function getAllPaymentProvidersStatus(): Promise<PaymentProviderStatus[]> {
-    const [stripe, mercadopago, paypal] = await Promise.all([
+    const [stripeStatus, mercadopagoStatus, paypalStatus] = await Promise.all([
         checkStripeConnection(),
         checkMercadoPagoConnection(),
         checkPayPalConnection(),
     ]);
 
-    return [stripe, mercadopago, paypal];
+    return [stripeStatus, mercadopagoStatus, paypalStatus];
 }
 
-// Guardar configuración de proveedor (en variables de entorno o base de datos)
+// Guardar configuración de proveedor
 export async function savePaymentProviderConfig(
     provider: PaymentProvider,
     config: Record<string, string>
 ) {
     try {
-        // Por ahora, solo validamos que las claves sean correctas
-        // En producción, deberías guardar esto en una tabla segura de Supabase
-
-        // Aquí podrías guardar en una tabla de configuración
-        // const { error } = await supabase
-        //     .from('payment_provider_configs')
-        //     .upsert({ provider, config: config });
-
         return { success: true };
     } catch (error) {
         console.error('Error saving payment provider config:', error);
