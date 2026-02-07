@@ -39,8 +39,12 @@ export default function AdminVaultPage() {
 
     const fetchProducts = async () => {
         setLoading(true);
+        if (!supabase) {
+            setLoading(false);
+            return;
+        }
         const { data, error } = await safeAction(async () => {
-            const { data, error } = await supabase
+            const { data, error } = await supabase!
                 .from("products")
                 .select("*")
                 .order('created_at', { ascending: false });
@@ -62,8 +66,9 @@ export default function AdminVaultPage() {
     };
 
     const saveQuickEdit = async (id: string) => {
+        if (!supabase) return;
         const { error } = await safeAction(async () => {
-            const { error } = await supabase
+            const { error } = await supabase!
                 .from("products")
                 .update({ price: editValues.price, stock: editValues.stock })
                 .eq("id", id);
@@ -80,8 +85,9 @@ export default function AdminVaultPage() {
 
     const deleteProduct = async (id: string) => {
         if (!confirm("¿Seguro que desea eliminar este recurso del arsenal?")) return;
+        if (!supabase) return;
         const { error } = await safeAction(async () => {
-            const { error } = await supabase.from("products").delete().eq("id", id);
+            const { error } = await supabase!.from("products").delete().eq("id", id);
             if (error) throw error;
         }, "Error al purgar el recurso del arsenal.");
 

@@ -40,9 +40,13 @@ export default function DatabaseConsolePage() {
 
     const checkConnection = async () => {
         setStatus("checking");
+        if (!supabase) {
+            setStatus("disconnected");
+            return;
+        }
         const start = performance.now();
         try {
-            const { data, error } = await supabase.from("products").select("count", { count: 'exact', head: true });
+            const { data, error } = await supabase!.from("products").select("count", { count: 'exact', head: true });
             const end = performance.now();
             if (error) throw error;
             setLatency(Math.round(end - start));
