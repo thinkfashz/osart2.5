@@ -4,6 +4,7 @@ import { safeAction } from "@/lib/security";
 
 export async function getProducts(): Promise<Product[]> {
     const { data, error } = await safeAction(async () => {
+        if (!supabase) return [];
         const { data, error } = await supabase
             .from('products')
             .select('*, variants:product_variants(*)')
@@ -17,6 +18,7 @@ export async function getProducts(): Promise<Product[]> {
 
 export async function createProduct(product: Omit<Product, 'id'>): Promise<Product | null> {
     const { data, error } = await safeAction(async () => {
+        if (!supabase) return null;
         const { data, error } = await supabase
             .from('products')
             .insert([product])
@@ -31,6 +33,7 @@ export async function createProduct(product: Omit<Product, 'id'>): Promise<Produ
 
 export async function updateProduct(id: string, updates: Partial<Product>): Promise<Product | null> {
     const { data, error } = await safeAction(async () => {
+        if (!supabase) return null;
         const { data, error } = await supabase
             .from('products')
             .update(updates)
@@ -46,6 +49,7 @@ export async function updateProduct(id: string, updates: Partial<Product>): Prom
 
 export async function deleteProduct(id: string): Promise<void> {
     await safeAction(async () => {
+        if (!supabase) return;
         const { error } = await supabase
             .from('products')
             .delete()
@@ -59,6 +63,7 @@ export async function deleteProduct(id: string): Promise<void> {
  */
 export async function bulkUpdateProducts(ids: string[], updates: Partial<Product>): Promise<void> {
     await safeAction(async () => {
+        if (!supabase) return;
         const { error } = await supabase
             .from('products')
             .update(updates)
@@ -71,6 +76,7 @@ export async function bulkUpdateProducts(ids: string[], updates: Partial<Product
  * Gestión de Variantes
  */
 export async function getProductVariants(productId: string) {
+    if (!supabase) return [];
     const { data, error } = await supabase
         .from('product_variants')
         .select('*')
@@ -79,6 +85,7 @@ export async function getProductVariants(productId: string) {
 }
 
 export async function createVariant(variant: any) {
+    if (!supabase) return null;
     const { data, error } = await supabase
         .from('product_variants')
         .insert([variant])
