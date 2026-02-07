@@ -3,6 +3,7 @@ import { Promotion } from "@/types";
 import { safeAction } from "@/lib/security";
 
 export async function getPromotions(): Promise<Promotion[]> {
+    if (!supabase) return [];
     const { data } = await supabase
         .from('promotions')
         .select('*')
@@ -12,6 +13,7 @@ export async function getPromotions(): Promise<Promotion[]> {
 
 export async function createPromotion(promotion: Omit<Promotion, 'id' | 'created_at'>, targets: { target_type: 'product' | 'category', target_id: string }[]): Promise<Promotion | null> {
     const result = await safeAction(async () => {
+        if (!supabase) return null;
         // 1. Insert promotion
         const { data: newPromo, error: promoError } = await supabase
             .from('promotions')
@@ -42,6 +44,7 @@ export async function createPromotion(promotion: Omit<Promotion, 'id' | 'created
 
 export async function togglePromotionStatus(id: string, is_active: boolean): Promise<void> {
     await safeAction(async () => {
+        if (!supabase) return;
         const { error } = await supabase
             .from('promotions')
             .update({ is_active })
@@ -52,6 +55,7 @@ export async function togglePromotionStatus(id: string, is_active: boolean): Pro
 
 export async function deletePromotion(id: string): Promise<void> {
     await safeAction(async () => {
+        if (!supabase) return;
         const { error } = await supabase
             .from('promotions')
             .delete()

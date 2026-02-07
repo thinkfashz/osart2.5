@@ -23,6 +23,7 @@ function generateOrderNumber(): string {
 
 // Crear una nueva orden
 export async function createOrder(input: CreateOrderInput) {
+    if (!supabase) return { success: false, error: "Servidor de base de datos no disponible" };
     try {
         // VALIDACIÓN DE STOCK: Verificar disponibilidad antes de crear la orden
         for (const item of input.items) {
@@ -121,6 +122,7 @@ export async function createOrder(input: CreateOrderInput) {
 
 // Crear PaymentIntent de Stripe
 export async function createPaymentIntent(orderId: string) {
+    if (!supabase) return { success: false, error: "Servidor de base de datos no disponible" };
     try {
         // Obtener orden con items
         const { data: order, error: orderError } = await supabase
@@ -166,6 +168,7 @@ export async function createPaymentIntent(orderId: string) {
 
 // Verificar pago con Stripe API
 export async function verifyPayment(orderId: string, paymentIntentId?: string) {
+    if (!supabase) return { success: false, error: "Servidor de base de datos no disponible" };
     try {
         let paymentIntent;
 
@@ -245,6 +248,7 @@ export async function verifyPayment(orderId: string, paymentIntentId?: string) {
 
 // Obtener órdenes recientes
 export async function getRecentOrders(limit: number = 10) {
+    if (!supabase) return { success: false, orders: [] };
     try {
         const { data: orders, error } = await supabase
             .from('orders')
@@ -269,6 +273,7 @@ export async function getRecentOrders(limit: number = 10) {
 
 // Obtener estadísticas de órdenes
 export async function getOrderStats(): Promise<{ success: boolean; stats?: OrderStats; error?: string }> {
+    if (!supabase) return { success: false, error: "Servidor de base de datos no disponible" };
     try {
         const today = new Date();
         today.setHours(0, 0, 0, 0);

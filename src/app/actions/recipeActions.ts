@@ -16,6 +16,7 @@ export interface Recipe {
 }
 
 export async function getRecipes(): Promise<Recipe[]> {
+    if (!supabase) return [];
     const { data } = await supabase
         .from('recipes')
         .select('*')
@@ -25,6 +26,7 @@ export async function getRecipes(): Promise<Recipe[]> {
 }
 
 export async function getRecipeBySlug(slug: string): Promise<Recipe | null> {
+    if (!supabase) return null;
     const { data } = await supabase
         .from('recipes')
         .select('*')
@@ -36,6 +38,7 @@ export async function getRecipeBySlug(slug: string): Promise<Recipe | null> {
 
 export async function createRecipe(recipe: Omit<Recipe, 'id'>): Promise<Recipe | null> {
     const result = await safeAction(async () => {
+        if (!supabase) return null;
         const { data, error } = await supabase
             .from('recipes')
             .insert([recipe])
@@ -49,6 +52,7 @@ export async function createRecipe(recipe: Omit<Recipe, 'id'>): Promise<Recipe |
 
 export async function deleteRecipe(id: string): Promise<void> {
     await safeAction(async () => {
+        if (!supabase) return;
         const { error } = await supabase
             .from('recipes')
             .delete()

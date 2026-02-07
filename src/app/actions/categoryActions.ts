@@ -12,6 +12,7 @@ export interface Category {
 }
 
 export async function getCategories(): Promise<Category[]> {
+    if (!supabase) return [];
     const { data } = await supabase
         .from('categories')
         .select('*')
@@ -41,6 +42,7 @@ export async function getCategoryTree() {
 
 export async function createCategory(category: Omit<Category, 'id' | 'created_at'>) {
     return await safeAction(async () => {
+        if (!supabase) return null;
         const { data, error } = await supabase
             .from('categories')
             .insert([category])
@@ -53,6 +55,7 @@ export async function createCategory(category: Omit<Category, 'id' | 'created_at
 
 export async function updateCategory(id: string, updates: Partial<Category>) {
     return await safeAction(async () => {
+        if (!supabase) return null;
         const { data, error } = await supabase
             .from('categories')
             .update(updates)
@@ -66,6 +69,7 @@ export async function updateCategory(id: string, updates: Partial<Category>) {
 
 export async function deleteCategory(id: string) {
     return await safeAction(async () => {
+        if (!supabase) return;
         const { error } = await supabase
             .from('categories')
             .delete()
