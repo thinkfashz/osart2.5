@@ -3,10 +3,10 @@ import { dummyUsers } from '@/data/dummyUsers';
 import { NextResponse } from 'next/server';
 
 export async function POST() {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-    if (!supabaseServiceKey) {
+    if (!supabaseUrl || !supabaseServiceKey) {
         return NextResponse.json(
             { error: "Falta SUPABASE_SERVICE_ROLE_KEY en el servidor." },
             { status: 500 }
