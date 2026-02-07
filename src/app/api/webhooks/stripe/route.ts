@@ -5,6 +5,13 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(req: NextRequest) {
     try {
+        if (!stripe) {
+            return NextResponse.json(
+                { error: 'Stripe is not configured' },
+                { status: 500 }
+            );
+        }
+
         const body = await req.text();
         const signature = (await headers()).get('stripe-signature');
 

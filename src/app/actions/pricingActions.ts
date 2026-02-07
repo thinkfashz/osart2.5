@@ -99,6 +99,7 @@ export async function calculateFinalPrice(
 }
 
 export async function getPricingRules(): Promise<PricingRule[]> {
+    if (!supabase) return [];
     const { data } = await supabase
         .from('pricing_rules')
         .select('*')
@@ -107,6 +108,7 @@ export async function getPricingRules(): Promise<PricingRule[]> {
 }
 
 export async function getActivePromotions(): Promise<Promotion[]> {
+    if (!supabase) return [];
     const now = new Date().toISOString();
     const { data } = await supabase
         .from('promotions')
@@ -119,6 +121,7 @@ export async function getActivePromotions(): Promise<Promotion[]> {
 
 export async function createPricingRule(rule: Omit<PricingRule, 'id' | 'created_at'>): Promise<PricingRule | null> {
     const result = await safeAction(async () => {
+        if (!supabase) throw new Error("Supabase client not initialized");
         const { data, error } = await supabase
             .from('pricing_rules')
             .insert([rule])
@@ -132,6 +135,7 @@ export async function createPricingRule(rule: Omit<PricingRule, 'id' | 'created_
 
 export async function togglePricingRule(id: string, is_active: boolean): Promise<void> {
     await safeAction(async () => {
+        if (!supabase) throw new Error("Supabase client not initialized");
         const { error } = await supabase
             .from('pricing_rules')
             .update({ is_active })
@@ -142,6 +146,7 @@ export async function togglePricingRule(id: string, is_active: boolean): Promise
 
 export async function deletePricingRule(id: string): Promise<void> {
     await safeAction(async () => {
+        if (!supabase) throw new Error("Supabase client not initialized");
         const { error } = await supabase
             .from('pricing_rules')
             .delete()

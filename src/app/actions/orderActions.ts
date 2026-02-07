@@ -136,6 +136,8 @@ export async function createPaymentIntent(orderId: string) {
             return { success: false, error: 'Orden no encontrada' };
         }
 
+        if (!stripe) return { success: false, error: "Stripe no está configurado" };
+
         // Crear PaymentIntent en Stripe
         const paymentIntent = await stripe.paymentIntents.create({
             amount: Math.round(order.total * 100), // Convertir a centavos
@@ -191,6 +193,7 @@ export async function verifyPayment(orderId: string, paymentIntentId?: string) {
         if (!paymentIntentId) {
             return { success: false, error: 'No se pudo determinar el ID de pago' };
         }
+        if (!stripe) return { success: false, error: "Stripe no está configurado" };
         paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
 
         const isSuccess = paymentIntent.status === 'succeeded';

@@ -28,6 +28,16 @@ export async function checkStripeConnection(): Promise<PaymentProviderStatus> {
             };
         }
 
+        if (!stripe) {
+            return {
+                provider: 'stripe',
+                connected: false,
+                configured: false,
+                lastChecked: new Date().toISOString(),
+                error: 'Stripe client no inicializado'
+            };
+        }
+
         // Intentar hacer una llamada simple a la API
         await stripe.balance.retrieve();
 
