@@ -24,6 +24,7 @@ export const revalidate = 60;
 
 async function getProduct(id: string): Promise<Product | null> {
     try {
+        if (!supabase) return dummyProducts.find(p => p.id === id) || null;
         const { data, error } = await supabase
             .from("products")
             .select("*")
@@ -41,6 +42,7 @@ async function getProduct(id: string): Promise<Product | null> {
 
 async function getRelatedProducts(category: string, currentId: string): Promise<Product[]> {
     try {
+        if (!supabase) return dummyProducts.filter(p => p.category === category && p.id !== currentId).slice(0, 4);
         const { data, error } = await supabase
             .from("products")
             .select("*")
