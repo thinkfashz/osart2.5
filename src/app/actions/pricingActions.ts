@@ -11,6 +11,7 @@ export async function calculateFinalPrice(
     quantity: number = 1
 ): Promise<{ originalPrice: number; finalPrice: number; discountsApplied: any[] }> {
     const result = await safeAction(async () => {
+        if (!supabase) throw new Error("Supabase client not initialized");
         // 1. Obtener datos del producto y su variante
         const { data: product, error: prodError } = await supabase
             .from('products')
