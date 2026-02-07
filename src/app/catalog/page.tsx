@@ -18,6 +18,11 @@ export default function CatalogPage() {
     useEffect(() => {
         const fetchProducts = async () => {
             try {
+                if (!supabase) {
+                    setProducts(dummyProducts as Product[]);
+                    setLoading(false);
+                    return;
+                }
                 const { data, error } = await supabase
                     .from("products")
                     .select("*");
