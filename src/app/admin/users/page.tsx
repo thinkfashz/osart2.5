@@ -40,8 +40,12 @@ export default function AdminUsersPage() {
 
     const fetchProfiles = async () => {
         setLoading(true);
+        if (!supabase) {
+            setLoading(false);
+            return;
+        }
         const { data, error } = await safeAction(async () => {
-            const { data, error } = await supabase
+            const { data, error } = await supabase!
                 .from("profiles")
                 .select("*")
                 .order("created_at", { ascending: false });

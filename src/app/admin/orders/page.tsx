@@ -49,8 +49,12 @@ export default function AdminOrdersPage() {
 
     const fetchOrders = async () => {
         setLoading(true);
+        if (!supabase) {
+            setLoading(false);
+            return;
+        }
         const { data, error } = await safeAction(async () => {
-            const { data, error } = await supabase
+            const { data, error } = await supabase!
                 .from("orders")
                 .select("*")
                 .order("created_at", { ascending: false });

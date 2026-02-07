@@ -28,6 +28,7 @@ export default function RecentOrders() {
     };
 
     const subscribeToOrders = () => {
+        if (!supabase) return;
         const channel = supabase
             .channel('orders_changes')
             .on(
