@@ -1,7 +1,7 @@
 "use server";
 
 import { supabase } from "@/lib/supabase";
-import { stripe } from "@/lib/stripe";
+import { getStripeClient } from "@/lib/stripe";
 import {
     Order,
     OrderItem,
@@ -124,6 +124,11 @@ export async function createOrder(input: CreateOrderInput) {
 export async function createPaymentIntent(orderId: string) {
     if (!supabase) return { success: false, error: "Servidor de base de datos no disponible" };
     try {
+        const stripeClient = getStripeClient();
+        if (!stripeClient) {
+            return { success: false, error: "Stripe no está configurado" };
+        }
+
         // Obtener orden con items
         const { data: order, error: orderError } = await supabase
             .from('orders')
@@ -137,7 +142,7 @@ export async function createPaymentIntent(orderId: string) {
         }
 
         // Crear PaymentIntent en Stripe
-        const paymentIntent = await stripe.paymentIntents.create({
+        const paymentIntent = await stripeClient.paymentIntents.create({
             amount: Math.round(order.total * 100), // Convertir a centavos
             currency: 'usd',
             metadata: {
@@ -170,6 +175,11 @@ export async function createPaymentIntent(orderId: string) {
 export async function verifyPayment(orderId: string, paymentIntentId?: string) {
     if (!supabase) return { success: false, error: "Servidor de base de datos no disponible" };
     try {
+        const stripeClient = getStripeClient();
+        if (!stripeClient) {
+            return { success: false, error: "Stripe no está configurado" };
+        }
+
         let paymentIntent;
 
         // Si no se proporciona paymentIntentId, obtenerlo de la orden
@@ -191,7 +201,7 @@ export async function verifyPayment(orderId: string, paymentIntentId?: string) {
         if (!paymentIntentId) {
             return { success: false, error: 'No se pudo determinar el ID de pago' };
         }
-        paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+        paymentIntent = await stripeClient.paymentIntents.retrieve(paymentIntentId);
 
         const isSuccess = paymentIntent.status === 'succeeded';
         const newPaymentStatus = isSuccess ? 'confirmed' :

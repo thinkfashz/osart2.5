@@ -1,4 +1,4 @@
-import { stripe } from '@/lib/stripe';
+import { getStripeClient } from '@/lib/stripe';
 import { headers } from 'next/headers';
 import { supabase } from '@/lib/supabase';
 import { NextRequest, NextResponse } from 'next/server';
@@ -7,6 +7,8 @@ export async function POST(req: NextRequest) {
     try {
         const body = await req.text();
         const signature = (await headers()).get('stripe-signature');
+        const stripeClient = getStripeClient();
+        const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
         if (!signature) {
             return NextResponse.json(
@@ -15,11 +17,18 @@ export async function POST(req: NextRequest) {
             );
         }
 
+        if (!stripeClient || !webhookSecret) {
+            return NextResponse.json(
+                { error: 'Stripe no está configurado' },
+                { status: 500 }
+            );
+        }
+
         // Verificar firma del webhook
-        const event = stripe.webhooks.constructEvent(
+        const event = stripeClient.webhooks.constructEvent(
             body,
             signature,
-            process.env.STRIPE_WEBHOOK_SECRET!
+            webhookSecret
         );
 
         // Manejar diferentes tipos de eventos
