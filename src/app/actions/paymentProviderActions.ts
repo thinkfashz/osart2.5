@@ -1,7 +1,7 @@
 "use server";
 
 import { supabase } from "@/lib/supabase";
-import { stripe } from "@/lib/stripe";
+import { getStripeClient } from "@/lib/stripe";
 import { getMercadoPago } from "@/lib/mercadopago";
 import { getPayPalClient } from "@/lib/paypal";
 
@@ -18,7 +18,8 @@ export interface PaymentProviderStatus {
 // Verificar conexión de Stripe
 export async function checkStripeConnection(): Promise<PaymentProviderStatus> {
     try {
-        if (!process.env.STRIPE_SECRET_KEY) {
+        const stripeClient = getStripeClient();
+        if (!stripeClient) {
             return {
                 provider: 'stripe',
                 connected: false,
@@ -29,7 +30,7 @@ export async function checkStripeConnection(): Promise<PaymentProviderStatus> {
         }
 
         // Intentar hacer una llamada simple a la API
-        await stripe.balance.retrieve();
+        await stripeClient.balance.retrieve();
 
         return {
             provider: 'stripe',

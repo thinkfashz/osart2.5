@@ -1,10 +1,19 @@
 import Stripe from 'stripe';
 
-if (!process.env.STRIPE_SECRET_KEY) {
-    throw new Error('STRIPE_SECRET_KEY no está configurado en las variables de entorno');
-}
+let stripeClient: Stripe | null = null;
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-    apiVersion: '2026-01-28.clover',
-    typescript: true,
-});
+export function getStripeClient() {
+    const secretKey = process.env.STRIPE_SECRET_KEY;
+    if (!secretKey) {
+        return null;
+    }
+
+    if (!stripeClient) {
+        stripeClient = new Stripe(secretKey, {
+            apiVersion: '2026-01-28.clover',
+            typescript: true,
+        });
+    }
+
+    return stripeClient;
+}
