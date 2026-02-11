@@ -11,7 +11,7 @@ import { Suspense } from "react";
 
 function SuccessContent() {
     const searchParams = useSearchParams();
-    const orderNumber = searchParams.get("order") || "ORD-XXXX-XXXX";
+    const orderNumber = searchParams.get("order") || searchParams.get("orderId") || "ORD-XXXX-XXXX";
 
     useEffect(() => {
         // Animación de Fuegos Artificiales (Celebración)

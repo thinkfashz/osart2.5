@@ -1,46 +1,30 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
+import { productsApi } from "@/lib/api-client";
 import { dummyProducts } from "@/data/dummyProducts";
 import PremiumProductCard from "@/components/products/PremiumProductCard";
 import Link from "next/link";
-import { ArrowLeft, Filter, Grid3x3, Navigation, Activity, Cpu } from "lucide-react";
-import { supabase } from "@/lib/supabase";
+import { ArrowLeft, Filter, Grid3x3, Navigation, Activity, Cpu, AlertTriangle } from "lucide-react";
 import { Product } from "@/types";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
-
 export default function CatalogPage() {
-    const [products, setProducts] = useState<Product[]>([]);
-    const [loading, setLoading] = useState(true);
+    const searchParams = useSearchParams();
+    const search = searchParams.get("search") || "";
+    const category = searchParams.get("category") || "";
 
-    useEffect(() => {
-        const fetchProducts = async () => {
-            try {
-                if (!supabase) {
-                    setProducts(dummyProducts as Product[]);
-                    setLoading(false);
-                    return;
-                }
-                const { data, error } = await supabase
-                    .from("products")
-                    .select("*");
+    const { data, isLoading, isError } = useQuery({
+        queryKey: ["products", { search, category }],
+        queryFn: () => productsApi.list({ search, category }),
+    });
 
-                if (error || !data || data.length === 0) {
-                    setProducts(dummyProducts as Product[]);
-                } else {
-                    setProducts(data as Product[]);
-                }
-            } catch (e) {
-                setProducts(dummyProducts as Product[]);
-            } finally {
-                setLoading(false);
-            }
-        };
+    const products = data?.data || (isError ? (dummyProducts as Product[]) : []);
+    const totalItems = data?.meta?.total ?? products.length;
 
-        fetchProducts();
-    }, []);
+    const loading = isLoading;
 
     return (
         <div className="bg-zinc-950 text-zinc-100 min-h-screen pt-32 pb-32 selection:bg-cyan-400/30 font-mono">
@@ -83,7 +67,7 @@ export default function CatalogPage() {
                         </div>
                         <div className="flex items-baseline gap-4">
                             <span className="text-8xl md:text-9xl font-black tracking-tighter text-zinc-100 italic">
-                                {products.length.toString().padStart(2, '0')}
+                                {totalItems.toString().padStart(2, '0')}
                             </span>
                             <span className="text-[10px] font-black text-cyan-400 uppercase tracking-[0.3em] mb-4">Unidades</span>
                         </div>

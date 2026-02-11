@@ -3,6 +3,7 @@ import { Inter, Plus_Jakarta_Sans, Playfair_Display } from "next/font/google";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import BottomNav from "@/components/layout/BottomNav";
+import { MobileStickyCart } from "@/components/cart/MobileStickyCart";
 
 import "./globals.css";
 import { cn } from "@/lib/utils";
@@ -18,6 +19,7 @@ export const metadata: Metadata = {
 
 import { Providers } from "@/components/Providers";
 import LuxuryBackground from "@/components/ui/LuxuryBackground";
+import ConditionalLayout from "@/components/layout/ConditionalLayout";
 
 export default function RootLayout({
   children,
@@ -29,13 +31,11 @@ export default function RootLayout({
       <body className="font-jakarta bg-charcoal text-white selection:bg-gold relative">
         <Providers>
           <LuxuryBackground />
-          <Navbar />
-          <main className="min-h-screen pb-20 lg:pb-0 relative z-10 transition-colors duration-1000">
-            {children}
-          </main>
-
-          <BottomNav />
-          <Footer />
+          <ConditionalLayout>
+            <main className="min-h-screen pb-20 lg:pb-0 relative z-10 transition-colors duration-1000">
+              {children}
+            </main>
+          </ConditionalLayout>
         </Providers>
       </body>
     </html>

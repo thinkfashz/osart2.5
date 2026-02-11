@@ -32,23 +32,24 @@ const benefits = [
 
 export default function BenefitsSection() {
     return (
-        <section className="py-32 bg-ivory relative overflow-hidden">
-            {/* Subtle Background Pattern */}
-            <div className="absolute inset-0 bg-tech-grid opacity-20" />
+        <section className="py-32 bg-zinc-950 relative overflow-hidden">
+            {/* Texture */}
+            <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
+                style={{ backgroundImage: 'radial-gradient(#22d3ee 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
 
             <div className="container mx-auto px-6 relative z-10">
                 {/* Section Header */}
-                <div className="max-w-3xl mx-auto text-center mb-20 space-y-6">
+                <div className="max-w-3xl mx-auto text-center mb-24 space-y-6">
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.6 }}
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-electric-blue/10 border border-electric-blue/20"
+                        className="inline-flex items-center gap-2 px-3 py-1.5 bg-zinc-900 border border-zinc-800"
                     >
-                        <Zap size={14} className="text-electric-blue" />
-                        <span className="text-xs font-semibold tracking-wide text-electric-blue">
-                            Ingeniería de Precisión
+                        <Zap size={12} className="text-cyan-400" />
+                        <span className="text-[10px] font-black tracking-[0.2em] text-cyan-400 uppercase">
+                            CORE_SPECIFICATIONS
                         </span>
                     </motion.div>
 
@@ -57,11 +58,11 @@ export default function BenefitsSection() {
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.6, delay: 0.1 }}
-                        className="text-5xl md:text-6xl font-bold tracking-tight text-graphite"
+                        className="text-5xl md:text-7xl font-black tracking-tighter text-zinc-100 uppercase"
                     >
-                        Tecnología que Funciona.
+                        Ingeniería sin
                         <br />
-                        <span className="text-slate-deep/50">Siempre.</span>
+                        <span className="text-zinc-800">Compromisos.</span>
                     </motion.h2>
 
                     <motion.p
@@ -69,15 +70,15 @@ export default function BenefitsSection() {
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.6, delay: 0.2 }}
-                        className="text-lg text-slate-deep/70 leading-relaxed"
+                        className="text-[14px] text-zinc-500 font-bold uppercase tracking-tight leading-relaxed max-w-2xl mx-auto"
                     >
-                        Cada componente pasa por rigurosos controles de calidad.
-                        No vendemos repuestos. Vendemos confiabilidad.
+                        Cada componente es sometido a protocolos de estrés industrial.
+                        No suministramos repuestos; entregamos continuidad operativa.
                     </motion.p>
                 </div>
 
                 {/* Benefits Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 max-w-7xl mx-auto">
                     {benefits.map((benefit, index) => (
                         <motion.div
                             key={index}
@@ -87,27 +88,35 @@ export default function BenefitsSection() {
                             transition={{ duration: 0.6, delay: index * 0.1 }}
                             className="group"
                         >
-                            <div className="bg-white rounded-2xl p-8 shadow-subtle hover:shadow-elevated transition-all duration-500 border border-graphite/5 h-full flex flex-col">
+                            <div className="bg-zinc-900/50 p-8 border border-zinc-800 h-full flex flex-col hover:border-cyan-400/50 transition-all duration-300 relative group overflow-hidden">
+                                {/* Hover Glow */}
+                                <div className="absolute -inset-1 bg-cyan-400/5 opacity-0 group-hover:opacity-100 blur-2xl transition-opacity" />
+
                                 {/* Icon */}
-                                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-electric-blue/10 to-tech-green/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500">
-                                    <benefit.icon size={24} className="text-electric-blue" strokeWidth={2} />
+                                <div className="w-12 h-12 bg-zinc-950 border border-zinc-800 flex items-center justify-center mb-8 relative z-10">
+                                    <benefit.icon size={20} className="text-zinc-400 group-hover:text-cyan-400 transition-colors" strokeWidth={2.5} />
                                 </div>
 
                                 {/* Content */}
-                                <div className="flex-1 space-y-4">
-                                    <h3 className="text-xl font-bold text-graphite tracking-tight">
+                                <div className="flex-1 space-y-4 relative z-10">
+                                    <h3 className="text-lg font-black text-zinc-100 uppercase tracking-tighter">
                                         {benefit.title}
                                     </h3>
-                                    <p className="text-sm text-slate-deep/70 leading-relaxed">
+                                    <p className="text-[11px] text-zinc-500 font-bold uppercase tracking-tight leading-relaxed">
                                         {benefit.description}
                                     </p>
                                 </div>
 
                                 {/* Metric Badge */}
-                                <div className="mt-6 pt-6 border-t border-graphite/10">
-                                    <div className="flex items-center gap-2">
-                                        <CheckCircle2 size={16} className="text-tech-green" />
-                                        <span className="text-sm font-bold text-graphite tracking-wide">
+                                <div className="mt-8 pt-6 border-t border-zinc-800 relative z-10">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-1.5 h-1.5 bg-cyan-400/50" />
+                                            <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
+                                                STATUS_VERIFIED
+                                            </span>
+                                        </div>
+                                        <span className="text-[11px] font-black text-zinc-100 tabular-nums tracking-wider bg-zinc-800 px-2 py-1">
                                             {benefit.metric}
                                         </span>
                                     </div>

@@ -17,6 +17,9 @@ import {
 import { formatCurrency, cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import Pagination from "@/components/ui/Pagination";
+import ProductFormDialog from "@/components/admin/ProductFormDialog";
+import { Product } from "@/types";
+import { supabase } from "@/lib/supabase";
 
 export default function AdminProductsPage() {
     const router = useRouter();
@@ -30,11 +33,34 @@ export default function AdminProductsPage() {
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
     const [searchQuery, setSearchQuery] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
+    const [isFormOpen, setIsFormOpen] = useState(false);
+    const [editingProduct, setEditingProduct] = useState<Product | null>(null);
     const itemsPerPage = 6;
 
     useEffect(() => {
         fetchProducts();
     }, [fetchProducts]);
+
+    const handleOpenCreate = () => {
+        setEditingProduct(null);
+        setIsFormOpen(true);
+    };
+
+    const handleOpenEdit = (product: Product) => {
+        setEditingProduct(product);
+        setIsFormOpen(true);
+    };
+
+    const handleSaveProduct = async (productData: Omit<Product, "id">) => {
+        if (editingProduct) {
+            await useProductStore.getState().updateProduct(editingProduct.id, productData);
+        } else {
+            // Include user_id from session for RLS
+            const { data: { session } } = await supabase.auth.getSession();
+            const user_id = session?.user?.id;
+            await useProductStore.getState().addProduct({ ...productData, user_id });
+        }
+    };
 
     const handleDelete = async (id: string) => {
         if (confirm("¿Estás seguro de eliminar este producto?")) {
@@ -103,7 +129,10 @@ export default function AdminProductsPage() {
                             </button>
                         </div>
                     )}
-                    <button className="arobix-button bg-electric-blue text-white border-electric-blue h-16 flex items-center gap-4 px-10 hover:shadow-[0_0_30px_rgba(14,165,233,0.3)] transition-all">
+                    <button
+                        onClick={handleOpenCreate}
+                        className="arobix-button bg-electric-blue text-white border-electric-blue h-16 flex items-center gap-4 px-10 hover:shadow-[0_0_30px_rgba(14,165,233,0.3)] transition-all"
+                    >
                         <Plus size={24} strokeWidth={3} />
                         <span className="font-black italic">NUEVO_REPOSITORIO</span>
                     </button>
@@ -243,7 +272,13 @@ export default function AdminProductsPage() {
                                                     <Layers size={20} strokeWidth={1.5} />
                                                 </button>
                                                 <button className="w-14 h-14 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-center text-white/20 hover:bg-electric-blue hover:text-white hover:border-electric-blue transition-all" title="Calibrar Inversión"><Tag size={20} strokeWidth={1.5} /></button>
-                                                <button className="w-14 h-14 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-center text-white/20 hover:bg-blue-400 hover:text-white hover:border-blue-400 transition-all" title="Editar Núcleo"><Edit size={20} strokeWidth={1.5} /></button>
+                                                <button
+                                                    onClick={() => handleOpenEdit(product)}
+                                                    className="w-14 h-14 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-center text-white/20 hover:bg-blue-400 hover:text-white hover:border-blue-400 transition-all"
+                                                    title="Editar Núcleo"
+                                                >
+                                                    <Edit size={20} strokeWidth={1.5} />
+                                                </button>
                                                 <button
                                                     onClick={() => handleDelete(product.id)}
                                                     className="w-14 h-14 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-center text-white/20 hover:bg-red-500 hover:text-white hover:border-red-500 transition-all"
@@ -267,6 +302,13 @@ export default function AdminProductsPage() {
                     className="border-t border-white/5"
                 />
             </div>
+
+            <ProductFormDialog
+                isOpen={isFormOpen}
+                onClose={() => setIsFormOpen(false)}
+                onSave={handleSaveProduct}
+                initialData={editingProduct}
+            />
         </div>
     );
 }

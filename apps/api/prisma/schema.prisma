@@ -1,0 +1,69 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Profile {
+  id              String   @id
+  email           String?
+  fullName        String?  @map("full_name")
+  role            String   @default("user")
+  knowledgePoints Int      @default(0) @map("knowledge_points")
+  avatarUrl       String?  @map("avatar_url")
+  createdAt       DateTime @default(now()) @map("created_at")
+  
+  orders Order[]
+  
+  @@map("profiles")
+}
+
+model Product {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  price       Float
+  stock       Int      @default(0)
+  category    String?
+  imageUrl    String?  @map("image_url")
+  specs       String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  
+  categoryId  String?  @map("category_id")
+  isActive    Boolean  @default(true) @map("is_active")
+  basePrice   Float?   @map("base_price")
+  metadata    String?  @default("{}")
+  userId      String?  @map("user_id")
+
+  @@map("products")
+}
+
+model Order {
+  id             String    @id @default(uuid())
+  userId         String?   @map("user_id")
+  total          Float
+  status         String    @default("pending")
+  items          String
+  trackingNumber String?   @map("tracking_number")
+  shippingDate   DateTime? @map("shipping_date")
+  deliveryDate   DateTime? @map("delivery_date")
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  orderNumber       String    @unique @map("order_number")
+  paymentStatus     String    @default("pending") @map("payment_status")
+  paymentMethod     String    @default("Tarjeta de Crédito") @map("payment_method")
+  subtotal          Float     @default(0)
+  shippingCost      Float     @default(0) @map("shipping_cost")
+  shippingAddress   String?   @map("shipping_address")
+  updatedAt         DateTime  @default(now()) @map("updated_at")
+  paymentConfirmedAt DateTime? @map("payment_confirmed_at")
+  cancelledAt       DateTime? @map("cancelled_at")
+  paymentIntentId   String?   @map("payment_intent_id")
+
+  user Profile? @relation(fields: [userId], references: [id])
+  
+  @@map("orders")
+}

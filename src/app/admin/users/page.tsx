@@ -23,6 +23,7 @@ import {
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { sanitizeString, safeAction } from "@/lib/security";
+import { profilesApi } from "@/lib/api-client";
 import Pagination from "@/components/ui/Pagination";
 
 export default function AdminUsersPage() {
@@ -40,17 +41,8 @@ export default function AdminUsersPage() {
 
     const fetchProfiles = async () => {
         setLoading(true);
-        if (!supabase) {
-            setLoading(false);
-            return;
-        }
         const { data, error } = await safeAction(async () => {
-            const { data, error } = await supabase!
-                .from("profiles")
-                .select("*")
-                .order("created_at", { ascending: false });
-            if (error) throw error;
-            return data;
+            return await profilesApi.list();
         }, "Error al sincronizar con el registro de operadores.");
 
         if (!error && data) {

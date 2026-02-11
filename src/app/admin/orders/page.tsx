@@ -24,6 +24,7 @@ import {
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { sanitizeString, safeAction } from "@/lib/security";
+import { ordersApi } from "@/lib/api-client";
 import Pagination from "@/components/ui/Pagination";
 
 const STATUS_CONFIG = {
@@ -49,17 +50,8 @@ export default function AdminOrdersPage() {
 
     const fetchOrders = async () => {
         setLoading(true);
-        if (!supabase) {
-            setLoading(false);
-            return;
-        }
         const { data, error } = await safeAction(async () => {
-            const { data, error } = await supabase!
-                .from("orders")
-                .select("*")
-                .order("created_at", { ascending: false });
-            if (error) throw error;
-            return data;
+            return await ordersApi.list();
         }, "Error al sincronizar con el protocolo de logística.");
 
         if (!error && data) {

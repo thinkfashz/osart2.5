@@ -1,0 +1,74 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Profile {
+  id              String   @id @db.Uuid
+  email           String?
+  fullName        String?  @map("full_name")
+  role            String   @default("user")
+  knowledgePoints Int      @default(0) @map("knowledge_points")
+  avatarUrl       String?  @map("avatar_url")
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  
+  orders Order[]
+  
+  @@map("profiles")
+}
+
+model Product {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title       String
+  description String?
+  price       Decimal  @db.Decimal
+  stock       Int      @default(0)
+  category    String?
+  imageUrl    String?  @map("image_url")
+  specs       Json?    @db.JsonB
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  
+  // New fields from Phase 5 migration
+  categoryId  String?  @map("category_id") @db.Uuid
+  isActive    Boolean  @default(true) @map("is_active")
+  basePrice   Decimal? @map("base_price") @db.Decimal
+  metadata    Json     @default("{}") @db.JsonB
+  userId      String?  @map("user_id") @db.Uuid
+
+  @@map("products")
+}
+
+model Order {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId         String?   @map("user_id") @db.Uuid
+  total          Decimal   @db.Decimal
+  status         String    @default("pending")
+  items          Json      @db.JsonB
+  trackingNumber String?   @map("tracking_number")
+  shippingDate   DateTime? @map("shipping_date") @db.Timestamptz(6)
+  deliveryDate   DateTime? @map("delivery_date") @db.Timestamptz(6)
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // New fields
+  orderNumber       String    @unique @map("order_number")
+  paymentStatus     String    @default("pending") @map("payment_status")
+  paymentMethod     String    @default("Tarjeta de Crédito") @map("payment_method")
+  subtotal          Decimal   @default(0) @db.Decimal
+  shippingCost      Decimal   @default(0) @map("shipping_cost") @db.Decimal
+  shippingAddress   Json?     @map("shipping_address") @db.JsonB
+  updatedAt         DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  paymentConfirmedAt DateTime? @map("payment_confirmed_at") @db.Timestamptz(6)
+  cancelledAt       DateTime? @map("cancelled_at") @db.Timestamptz(6)
+  paymentIntentId   String?   @map("payment_intent_id")
+
+  user Profile? @relation(fields: [userId], references: [id])
+  
+  @@map("orders")
+}

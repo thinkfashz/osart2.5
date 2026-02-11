@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCartStore } from "@/store/cartStore";
 import { formatCurrency } from "@/lib/utils";
@@ -8,6 +8,12 @@ import { ShoppingBag, Truck, CreditCard, CheckCircle2, ArrowRight, ArrowLeft, Tr
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import LocationPicker from "@/components/ui/LocationPicker";
+import { loadStripe } from "@stripe/stripe-js";
+import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js";
+import { paymentsApi, ordersApi } from "@/lib/api-client";
+
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
 const STEPS = ["Carrito", "Envío", "Pago", "Confirmación"];
 
@@ -15,13 +21,73 @@ export default function CheckoutPage() {
     const { items, removeItem, updateQuantity, total } = useCartStore();
     const [currentStep, setCurrentStep] = useState(0);
     const [isProcessing, setIsProcessing] = useState(false);
+    const [clientSecret, setClientSecret] = useState<string | null>(null);
+    const [orderId, setOrderId] = useState<string | null>(null);
 
-    const nextStep = () => {
+    const nextStep = async () => {
         setIsProcessing(true);
-        setTimeout(() => {
+        try {
+            // Logic to handle specific step transitions
+            if (currentStep === 1) {
+                // Moving from Shipping to Payment
+                await preparePayment();
+            }
+
             setCurrentStep((prev) => Math.min(prev + 1, STEPS.length - 1));
+        } catch (error) {
+            console.error("Error transitioning step:", error);
+            alert("Error al procesar el paso actual. Por favor intenta de nuevo.");
+        } finally {
             setIsProcessing(false);
-        }, 600);
+        }
+    };
+
+    const preparePayment = async () => {
+        // 1. Create order via Server Action (keep this for now or move to API later)
+        const { createOrder } = await import('@/app/actions/orderActions');
+
+        // Mock shipping address for now as per previous implementation
+        const orderData = {
+            items: items.map(item => ({
+                product_id: item.id,
+                product_name: item.title,
+                product_image: item.image_url,
+                quantity: item.quantity,
+                unit_price: item.price
+            })),
+            shipping_address: {
+                fullName: "Cliente Demo",
+                street: "Calle Principal",
+                houseNumber: "123",
+                city: "Ciudad",
+                state: "Estado",
+                postalCode: "12345",
+                phone: "1234567890"
+            },
+            payment_method: "Tarjeta de Crédito",
+            subtotal: total,
+            shipping_cost: 0,
+            total: total
+        };
+
+        const result = await createOrder(orderData);
+        if (!result.success || !result.order) {
+            throw new Error(result.error || "Error al crear la orden");
+        }
+
+        setOrderId(result.order.id);
+
+        // 2. Get clientSecret from NestJS API
+        try {
+            const data = await paymentsApi.createIntent({
+                amount: total,
+                orderId: result.order.id
+            });
+            setClientSecret(data.clientSecret);
+        } catch (error) {
+            console.error("Error creating payment intent:", error);
+            throw new Error("No se pudo obtener la intención de pago");
+        }
     };
 
     const prevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 0));
@@ -137,8 +203,27 @@ export default function CheckoutPage() {
                                     <CartStep items={items} updateQuantity={updateQuantity} removeItem={removeItem} />
                                 )}
                                 {currentStep === 1 && <ShippingStep />}
-                                {currentStep === 2 && <PaymentStep />}
-                                {currentStep === 3 && <ReviewStep items={items} totalPrice={total} />}
+                                {currentStep === 2 && (
+                                    clientSecret ? (
+                                        <Elements stripe={stripePromise} options={{ clientSecret }}>
+                                            <PaymentStep />
+                                        </Elements>
+                                    ) : (
+                                        <div className="flex flex-col items-center justify-center p-12 space-y-4">
+                                            <Loader2 className="animate-spin text-electric-blue" size={48} />
+                                            <p className="text-sm font-semibold uppercase tracking-widest text-slate-deep/40">Iniciando Checkout Seguro...</p>
+                                        </div>
+                                    )
+                                )}
+                                {currentStep === 3 && (
+                                    clientSecret ? (
+                                        <Elements stripe={stripePromise} options={{ clientSecret }}>
+                                            <ReviewStep items={items} totalPrice={total} orderId={orderId} />
+                                        </Elements>
+                                    ) : (
+                                        <ReviewStep items={items} totalPrice={total} orderId={orderId} />
+                                    )
+                                )}
                             </motion.div>
                         </AnimatePresence>
 
@@ -554,365 +639,166 @@ function ShippingStep() {
 }
 
 function PaymentStep() {
-    const [selected, setSelected] = useState('card');
-
     return (
         <div className="space-y-8">
             <div className="space-y-2">
-                <h2 className="text-3xl font-bold tracking-tight text-graphite">Método de Pago</h2>
-                <p className="text-sm text-slate-deep/60 font-medium">Selecciona tu método de pago preferido</p>
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-electric-blue/10 border border-electric-blue/20">
+                    <CreditCard size={12} className="text-electric-blue" />
+                    <span className="text-xs font-semibold uppercase tracking-wide text-electric-blue">Pago Seguro</span>
+                </div>
+                <h2 className="text-3xl font-bold tracking-tight text-graphite">Información de Pago</h2>
+                <p className="text-sm text-slate-deep/60 font-medium">Ingresa los detalles de tu tarjeta de forma segura</p>
             </div>
 
-            <div className="space-y-4">
-                <div
-                    onClick={() => setSelected('card')}
-                    className={cn(
-                        "p-6 rounded-2xl flex items-center justify-between border-2 cursor-pointer transition-all",
-                        selected === 'card'
-                            ? "bg-electric-blue/10 border-electric-blue shadow-lg scale-[1.02]"
-                            : "bg-white border-graphite/10 hover:border-electric-blue/30"
-                    )}
-                >
-                    <div className="flex items-center gap-4">
-                        <div className={cn(
-                            "w-14 h-14 rounded-xl flex items-center justify-center",
-                            selected === 'card' ? "bg-electric-blue text-white" : "bg-graphite/10 text-graphite"
-                        )}>
-                            <CreditCard size={24} />
-                        </div>
-                        <div className="flex flex-col">
-                            <span className="text-lg font-bold text-graphite">Tarjeta de Crédito/Débito</span>
-                            <span className="text-sm font-medium text-slate-deep/60">Visa, Mastercard, Amex</span>
-                        </div>
-                    </div>
-                    <div className={cn(
-                        "w-6 h-6 rounded-full border-2 flex items-center justify-center",
-                        selected === 'card' ? "border-electric-blue" : "border-graphite/20"
-                    )}>
-                        {selected === 'card' && <div className="w-3 h-3 bg-electric-blue rounded-full" />}
-                    </div>
-                </div>
-
-                <div
-                    onClick={() => setSelected('wallet')}
-                    className={cn(
-                        "p-6 rounded-2xl flex items-center justify-between border-2 cursor-pointer transition-all",
-                        selected === 'wallet'
-                            ? "bg-electric-blue/10 border-electric-blue shadow-lg scale-[1.02]"
-                            : "bg-white border-graphite/10 hover:border-electric-blue/30"
-                    )}
-                >
-                    <div className="flex items-center gap-4">
-                        <div className={cn(
-                            "w-14 h-14 rounded-xl flex items-center justify-center",
-                            selected === 'wallet' ? "bg-electric-blue text-white" : "bg-graphite/10 text-graphite"
-                        )}>
-                            <ShoppingBag size={24} />
-                        </div>
-                        <div className="flex flex-col">
-                            <span className="text-lg font-bold text-graphite">Billetera Digital</span>
-                            <span className="text-sm font-medium text-slate-deep/60">Apple Pay, Google Pay, Crypto</span>
-                        </div>
-                    </div>
-                    <div className={cn(
-                        "w-6 h-6 rounded-full border-2 flex items-center justify-center",
-                        selected === 'wallet' ? "border-electric-blue" : "border-graphite/20"
-                    )}>
-                        {selected === 'wallet' && <div className="w-3 h-3 bg-electric-blue rounded-full" />}
-                    </div>
-                </div>
+            <div className="bg-white p-8 rounded-3xl border border-graphite/10 shadow-subtle animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <PaymentElement
+                    options={{
+                        layout: "tabs",
+                    }}
+                />
             </div>
 
             <div className="p-6 bg-tech-green/10 border border-tech-green/20 rounded-2xl flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-tech-green flex items-center justify-center text-white">
+                <div className="w-12 h-12 rounded-xl bg-tech-green flex items-center justify-center text-white shrink-0">
                     <ShieldCheck size={20} />
                 </div>
                 <div>
                     <p className="text-sm font-bold uppercase tracking-wide text-graphite">Pago 100% Seguro</p>
-                    <p className="text-xs text-slate-deep/60 font-medium">Encriptación SSL y certificación ISO/IEC 27001</p>
+                    <p className="text-xs text-slate-deep/60 font-medium leading-relaxed">Encriptación SSL y certificación ISO/IEC 27001 por Stripe</p>
                 </div>
             </div>
         </div>
     );
 }
 
-function ReviewStep({ items, totalPrice }: { items: any[], totalPrice: number }) {
+function ReviewStep({ items, totalPrice, orderId }: { items: any[], totalPrice: number, orderId: string | null }) {
+    const stripe = useStripe();
+    const elements = useElements();
     const [isProcessing, setIsProcessing] = useState(false);
     const [isVerifying, setIsVerifying] = useState(false);
-    const [orderResult, setOrderResult] = useState<any>(null);
-    const [paymentResult, setPaymentResult] = useState<any>(null);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const { clearCart } = useCartStore();
 
     const handleConfirmOrder = async () => {
-        setIsProcessing(true);
-
-        // Preparar datos de la orden
-        const orderData = {
-            items: items.map(item => ({
-                product_id: item.id,
-                product_name: item.title,
-                product_image: item.image_url,
-                quantity: item.quantity,
-                unit_price: item.price
-            })),
-            shipping_address: {
-                fullName: "Cliente Demo",
-                street: "Calle Principal",
-                houseNumber: "123",
-                city: "Ciudad",
-                state: "Estado",
-                postalCode: "12345",
-                phone: "1234567890"
-            },
-            payment_method: "Tarjeta de Crédito",
-            subtotal: totalPrice,
-            shipping_cost: 0,
-            total: totalPrice
-        };
-
-        // Crear la orden
-        const { createOrder } = await import('@/app/actions/orderActions');
-        const result = await createOrder(orderData);
-
-        if (!result.success) {
-            setOrderResult({ success: false, error: result.error });
-            setIsProcessing(false);
+        if (!stripe || !elements || !orderId) {
             return;
         }
 
-        setOrderResult(result);
-        setIsProcessing(false);
-        setIsVerifying(true);
+        setIsProcessing(true);
+        setErrorMessage(null);
 
-        // Verificar pago
-        const { verifyPayment } = await import('@/app/actions/orderActions');
-        const paymentVerification = await verifyPayment(result.order!.id);
+        const { error } = await stripe.confirmPayment({
+            elements,
+            confirmParams: {
+                return_url: `${window.location.origin}/checkout/success?orderId=${orderId}`,
+            },
+        });
 
-        setPaymentResult(paymentVerification);
-        setIsVerifying(false);
-
-        // Si el pago fue confirmado, limpiar el carrito y redirigir
-        if (paymentVerification.success && paymentVerification.paymentConfirmed) {
+        if (error) {
+            console.error("Payment error:", error);
+            setErrorMessage(error.message || "Ocurrió un error inesperado al procesar el pago.");
+            setIsProcessing(false);
+        } else {
+            // Success usually redirects to return_url, but if not:
             clearCart();
-            // Redirigir a la página de éxito con el número de orden
-            window.location.href = `/checkout/success?order=${result.order!.order_number}`;
         }
     };
 
-    // Estado inicial: Mostrar resumen y botón de confirmar
-    if (!orderResult) {
+    if (errorMessage) {
         return (
-            <div className="space-y-12 py-8">
-                <div className="relative">
-                    <motion.div
-                        initial={{ scale: 0, rotate: -180 }}
-                        animate={{ scale: 1, rotate: 0 }}
-                        transition={{ type: "spring", damping: 15, stiffness: 100 }}
-                        className="w-32 h-32 bg-gradient-to-br from-electric-blue to-tech-green text-white rounded-3xl flex items-center justify-center mx-auto shadow-elevated"
-                    >
-                        <ShoppingBag size={64} strokeWidth={2} />
-                    </motion.div>
+            <div className="space-y-8 py-8 text-center">
+                <div className="w-32 h-32 bg-red-500/10 text-red-500 rounded-3xl flex items-center justify-center mx-auto border-2 border-red-500/20">
+                    <AlertTriangle size={64} />
                 </div>
-
-                <div className="text-center space-y-4">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-electric-blue/10 border border-electric-blue/20">
-                        <Package size={14} className="text-electric-blue" />
-                        <span className="text-xs font-semibold uppercase tracking-wide text-electric-blue">Resumen del Pedido</span>
-                    </div>
-                    <h2 className="text-6xl font-bold tracking-tight text-graphite leading-[0.9]">
-                        Confirmar Pedido
-                    </h2>
-                    <p className="text-lg text-slate-deep/60 font-medium max-w-2xl mx-auto">
-                        Revisa tu pedido antes de confirmar. Una vez confirmado, procesaremos el pago.
-                    </p>
+                <div className="space-y-4">
+                    <h2 className="text-4xl font-bold tracking-tight text-graphite leading-[0.9]">Error en el Pago</h2>
+                    <p className="text-lg text-slate-deep/60 font-medium max-w-md mx-auto">{errorMessage}</p>
                 </div>
-
-                <div className="grid grid-cols-2 gap-6 max-w-xl mx-auto border-t border-b border-graphite/10 py-8">
-                    <div className="text-center space-y-2">
-                        <span className="block text-sm uppercase tracking-wide font-semibold text-slate-deep/60">Productos</span>
-                        <span className="text-5xl font-bold text-graphite">{items.length}</span>
-                    </div>
-                    <div className="text-center space-y-2">
-                        <span className="block text-sm uppercase tracking-wide font-semibold text-slate-deep/60">Total</span>
-                        <span className="text-5xl font-bold text-electric-blue">{formatCurrency(totalPrice)}</span>
-                    </div>
-                </div>
-
-                <div className="flex justify-center">
-                    <motion.button
-                        onClick={handleConfirmOrder}
-                        disabled={isProcessing}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        className="relative min-w-[320px] h-16 bg-gradient-to-br from-electric-blue to-tech-green text-white rounded-2xl font-bold uppercase tracking-wide text-sm shadow-lg overflow-hidden group disabled:opacity-50"
-                    >
-                        {isProcessing ? (
-                            <div className="flex items-center justify-center gap-3">
-                                <Loader2 className="animate-spin" size={20} />
-                                <span>Creando Orden...</span>
-                            </div>
-                        ) : (
-                            <>
-                                <motion.div
-                                    className="absolute inset-0"
-                                    animate={{
-                                        background: [
-                                            "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%)",
-                                            "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%)"
-                                        ],
-                                        backgroundPosition: ["-200%", "200%"]
-                                    }}
-                                    transition={{
-                                        duration: 1,
-                                        repeat: Infinity,
-                                        ease: "linear"
-                                    }}
-                                />
-                                <span className="relative z-10 flex items-center justify-center gap-2">
-                                    <Zap size={18} />
-                                    Confirmar Pedido
-                                </span>
-                            </>
-                        )}
-                    </motion.button>
-                </div>
+                <button
+                    onClick={() => window.location.reload()}
+                    className="px-8 py-4 bg-graphite text-white rounded-2xl font-bold uppercase tracking-wide text-sm"
+                >
+                    Reintentar
+                </button>
             </div>
         );
     }
-
-    // Estado de verificación de pago
-    if (isVerifying) {
-        return (
-            <div className="space-y-12 py-8">
-                <div className="relative">
-                    <motion.div
-                        animate={{
-                            rotate: [0, 360],
-                        }}
-                        transition={{
-                            duration: 2,
-                            repeat: Infinity,
-                            ease: "linear"
-                        }}
-                        className="w-32 h-32 bg-gradient-to-br from-electric-blue to-tech-green text-white rounded-3xl flex items-center justify-center mx-auto shadow-elevated"
-                    >
-                        <CreditCard size={64} strokeWidth={2} />
-                    </motion.div>
-                </div>
-
-                <div className="text-center space-y-4">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-electric-blue/10 border border-electric-blue/20 animate-pulse">
-                        <Loader2 className="animate-spin text-electric-blue" size={14} />
-                        <span className="text-xs font-semibold uppercase tracking-wide text-electric-blue">Verificando Pago</span>
-                    </div>
-                    <h2 className="text-5xl font-bold tracking-tight text-graphite leading-[0.9]">
-                        Procesando Pago...
-                    </h2>
-                    <p className="text-lg text-slate-deep/60 font-medium max-w-2xl mx-auto">
-                        Estamos verificando tu pago de forma segura. Esto puede tomar unos segundos.
-                    </p>
-                </div>
-            </div>
-        );
-    }
-
-    // Resultado final: Éxito o Error
-    const isSuccess = paymentResult?.success && paymentResult?.paymentConfirmed;
 
     return (
         <div className="space-y-12 py-8">
             <div className="relative">
                 <motion.div
-                    initial={{ scale: 0, rotate: isSuccess ? -180 : 0 }}
+                    initial={{ scale: 0, rotate: -180 }}
                     animate={{ scale: 1, rotate: 0 }}
                     transition={{ type: "spring", damping: 15, stiffness: 100 }}
-                    className={cn(
-                        "w-32 h-32 text-white rounded-3xl flex items-center justify-center mx-auto shadow-elevated",
-                        isSuccess
-                            ? "bg-gradient-to-br from-tech-green to-electric-blue"
-                            : "bg-gradient-to-br from-red-500 to-red-600"
-                    )}
+                    className="w-32 h-32 bg-gradient-to-br from-electric-blue to-tech-green text-white rounded-3xl flex items-center justify-center mx-auto shadow-elevated"
                 >
-                    {isSuccess ? (
-                        <CheckCircle2 size={64} strokeWidth={2.5} />
-                    ) : (
-                        <motion.div
-                            animate={{ rotate: [0, 10, -10, 0] }}
-                            transition={{ duration: 0.5, repeat: 3 }}
-                        >
-                            <AlertTriangle size={64} strokeWidth={2.5} />
-                        </motion.div>
-                    )}
+                    <ShoppingBag size={64} strokeWidth={2} />
                 </motion.div>
             </div>
 
             <div className="text-center space-y-4">
-                <div className={cn(
-                    "inline-flex items-center gap-2 px-4 py-2 rounded-full border",
-                    isSuccess
-                        ? "bg-tech-green/10 border-tech-green/20"
-                        : "bg-red-500/10 border-red-500/20"
-                )}>
-                    {isSuccess ? (
-                        <>
-                            <Zap size={14} className="text-tech-green" />
-                            <span className="text-xs font-semibold uppercase tracking-wide text-tech-green">Pedido Confirmado</span>
-                        </>
-                    ) : (
-                        <>
-                            <AlertTriangle size={14} className="text-red-500" />
-                            <span className="text-xs font-semibold uppercase tracking-wide text-red-500">Pago Rechazado</span>
-                        </>
-                    )}
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-electric-blue/10 border border-electric-blue/20">
+                    <Package size={14} className="text-electric-blue" />
+                    <span className="text-xs font-semibold uppercase tracking-wide text-electric-blue">Resumen del Pedido</span>
                 </div>
-
                 <h2 className="text-6xl font-bold tracking-tight text-graphite leading-[0.9]">
-                    {isSuccess ? '¡Pedido Exitoso!' : 'Pago Fallido'}
+                    Confirmar Pedido
                 </h2>
-
                 <p className="text-lg text-slate-deep/60 font-medium max-w-2xl mx-auto">
-                    {isSuccess ? (
-                        <>
-                            Tu pedido <span className="font-bold text-graphite">{orderResult.order.order_number}</span> ha sido procesado correctamente.
-                            Recibirás un correo con los detalles y el seguimiento de tu envío.
-                        </>
-                    ) : (
-                        'El pago no pudo ser procesado. Por favor, verifica tus datos de pago e intenta nuevamente.'
-                    )}
+                    Revisa tu pedido antes de confirmar. Tu pago será procesado de forma segura vía Stripe.
                 </p>
             </div>
 
             <div className="grid grid-cols-2 gap-6 max-w-xl mx-auto border-t border-b border-graphite/10 py-8">
                 <div className="text-center space-y-2">
-                    <span className="block text-sm uppercase tracking-wide font-semibold text-slate-deep/60">
-                        {isSuccess ? 'Productos' : 'Orden'}
-                    </span>
-                    <span className="text-5xl font-bold text-graphite">
-                        {isSuccess ? items.length : orderResult.order.order_number.split('-').pop()}
-                    </span>
+                    <span className="block text-sm uppercase tracking-wide font-semibold text-slate-deep/60">Productos</span>
+                    <span className="text-5xl font-bold text-graphite">{items.length}</span>
                 </div>
                 <div className="text-center space-y-2">
                     <span className="block text-sm uppercase tracking-wide font-semibold text-slate-deep/60">Total</span>
-                    <span className={cn(
-                        "text-5xl font-bold",
-                        isSuccess ? "text-tech-green" : "text-red-500"
-                    )}>
-                        {formatCurrency(totalPrice)}
-                    </span>
+                    <span className="text-5xl font-bold text-electric-blue">{formatCurrency(totalPrice)}</span>
                 </div>
             </div>
 
-            {!isSuccess && (
-                <div className="flex justify-center">
-                    <Link
-                        href="/catalog"
-                        className="px-12 py-5 bg-gradient-to-br from-graphite to-midnight text-white rounded-2xl font-bold uppercase tracking-wide text-sm hover:shadow-elevated transition-all flex items-center gap-3"
-                    >
-                        Volver al Catálogo
-                        <ArrowRight size={20} />
-                    </Link>
-                </div>
-            )}
+            <div className="flex justify-center">
+                <motion.button
+                    onClick={handleConfirmOrder}
+                    disabled={isProcessing || !stripe}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="relative min-w-[320px] h-16 bg-gradient-to-br from-electric-blue to-tech-green text-white rounded-2xl font-bold uppercase tracking-wide text-sm shadow-lg overflow-hidden group disabled:opacity-50"
+                >
+                    {isProcessing ? (
+                        <div className="flex items-center justify-center gap-3">
+                            <Loader2 className="animate-spin" size={20} />
+                            <span>Procesando Pago...</span>
+                        </div>
+                    ) : (
+                        <>
+                            <motion.div
+                                className="absolute inset-0"
+                                animate={{
+                                    background: [
+                                        "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%)",
+                                        "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%)"
+                                    ],
+                                    backgroundPosition: ["-200%", "200%"]
+                                }}
+                                transition={{
+                                    duration: 1,
+                                    repeat: Infinity,
+                                    ease: "linear"
+                                }}
+                            />
+                            <span className="relative z-10 flex items-center justify-center gap-2">
+                                <Zap size={18} />
+                                Confirmar y Pagar
+                            </span>
+                        </>
+                    )}
+                </motion.button>
+            </div>
         </div>
     );
 }

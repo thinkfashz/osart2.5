@@ -19,6 +19,7 @@ import {
     X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 import AdminNavbar from "@/components/admin/AdminNavbar";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -35,6 +36,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         { icon: TrendingUp, label: "Promociones", href: "/admin/promotions" },
         { icon: Settings, label: "Precios", href: "/admin/pricing" },
         { icon: Database, label: "Database", href: "/admin/database" },
+        { icon: Settings, label: "API Config", href: "/admin/api" },
         { icon: Layout, label: "Plugins", href: "/admin/plugins" },
     ];
 
@@ -59,18 +61,24 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                 key={item.href}
                                 href={item.href}
                                 className={cn(
-                                    "flex items-center gap-3 px-4 py-3 border-l-2 transition-all duration-150 group",
+                                    "flex items-center gap-4 px-5 py-4 border-l-[3px] transition-all duration-300 group relative overflow-hidden",
                                     pathname === item.href
-                                        ? "bg-zinc-800 border-cyan-400 text-zinc-100 shadow-[inset_4px_0_0_0_rgba(34,211,238,0.1)]"
-                                        : "bg-transparent border-transparent text-zinc-500 hover:bg-zinc-800/50 hover:text-zinc-300"
+                                        ? "bg-cyan-400/5 border-cyan-400 text-white"
+                                        : "bg-transparent border-transparent text-zinc-500 hover:bg-white/[0.02] hover:text-zinc-200"
                                 )}
                                 onClick={() => setIsSidebarOpen(false)}
                             >
-                                <item.icon size={18} className={cn(
-                                    "transition-colors",
-                                    pathname === item.href ? "text-cyan-400" : "text-zinc-600 group-hover:text-zinc-400"
+                                <item.icon size={20} className={cn(
+                                    "transition-all duration-500",
+                                    pathname === item.href ? "text-cyan-400 scale-110" : "text-zinc-700 group-hover:text-zinc-400 group-hover:scale-110"
                                 )} />
-                                <span className="text-xs font-bold uppercase tracking-widest">{item.label}</span>
+                                <span className="text-[10px] font-black uppercase tracking-[0.2em] italic group-hover:tracking-[0.3em] transition-all">{item.label}</span>
+                                {pathname === item.href && (
+                                    <motion.div
+                                        layoutId="active-sidebar-indicator"
+                                        className="absolute right-0 w-1 h-8 bg-cyan-400 blur-[2px]"
+                                    />
+                                )}
                             </Link>
                         ))}
                     </nav>

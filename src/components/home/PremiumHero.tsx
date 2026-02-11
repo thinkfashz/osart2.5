@@ -6,99 +6,109 @@ import Link from "next/link";
 
 export default function PremiumHero() {
     return (
-        <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-gradient-to-b from-pearl via-ivory to-silver">
-            {/* Tech Grid Background */}
-            <div className="absolute inset-0 bg-tech-grid opacity-40" />
+        <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-zinc-950">
+            {/* Background Texture */}
+            <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
+                style={{ backgroundImage: 'radial-gradient(#22d3ee 1px, transparent 1px)', backgroundSize: '30px 30px' }} />
 
-            {/* Gradient Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-br from-electric-blue/5 via-transparent to-tech-green/5" />
+            <div className="absolute inset-0 bg-gradient-to-b from-cyan-400/5 via-transparent to-transparent" />
 
             <div className="container mx-auto px-6 py-32 relative z-10">
-                <div className="max-w-5xl mx-auto text-center space-y-12">
+                <div className="max-w-6xl mx-auto flex flex-col items-center">
 
-                    {/* Micro Badge */}
+                    {/* Industrial Micro Badge */}
                     <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6 }}
-                        className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-graphite/5 border border-graphite/10 backdrop-blur-sm"
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.5 }}
+                        className="inline-flex items-center gap-3 px-6 py-2 bg-zinc-900 border border-zinc-800 mb-12"
                     >
-                        <Award size={14} className="text-electric-blue" />
-                        <span className="text-xs font-semibold tracking-wide text-graphite">
-                            Calidad Profesional Certificada
+                        <motion.div
+                            animate={{ opacity: [1, 0.5, 1] }}
+                            transition={{ duration: 1.5, repeat: Infinity }}
+                            className="w-2 h-2 bg-cyan-400"
+                        />
+                        <span className="text-[10px] font-black tracking-[0.3em] text-zinc-400 uppercase">
+                            INDUSTRIAL_GRADE_COMPONENTS
                         </span>
                     </motion.div>
 
                     {/* Main Headline */}
-                    <motion.h1
-                        initial={{ opacity: 0, y: 30 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.7, delay: 0.1 }}
-                        className="text-6xl md:text-8xl font-bold tracking-tight text-graphite leading-[0.95]"
-                    >
-                        Precisión Electrónica.
-                        <br />
-                        <span className="text-slate-deep/60">Confianza Absoluta.</span>
-                    </motion.h1>
+                    <div className="text-center space-y-4 mb-12">
+                        <motion.h1
+                            initial={{ opacity: 0, y: 30 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.8, ease: [0.2, 0, 0, 1] }}
+                            className="text-7xl md:text-[10rem] font-black tracking-tighter text-zinc-100 leading-[0.85] italic uppercase"
+                        >
+                            HARDWARE
+                            <br />
+                            <span className="text-cyan-400 flex items-center justify-center gap-4">
+                                <motion.span
+                                    initial={{ width: 0 }}
+                                    animate={{ width: "auto" }}
+                                    className="h-1 bg-zinc-800 flex-1 hidden md:block"
+                                />
+                                SOBERANO
+                                <motion.span
+                                    initial={{ width: 0 }}
+                                    animate={{ width: "auto" }}
+                                    className="h-1 bg-zinc-800 flex-1 hidden md:block"
+                                />
+                            </span>
+                        </motion.h1>
+                    </div>
 
                     {/* Subtitle */}
                     <motion.p
-                        initial={{ opacity: 0, y: 30 }}
+                        initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.7, delay: 0.2 }}
-                        className="text-lg md:text-xl text-slate-deep/70 max-w-3xl mx-auto leading-relaxed font-medium"
+                        transition={{ duration: 0.8, delay: 0.2 }}
+                        className="text-lg md:text-2xl text-zinc-500 max-w-2xl text-center leading-relaxed font-bold italic mb-16 uppercase tracking-tight"
                     >
-                        Repuestos electrónicos de grado industrial para equipos exigentes.
-                        <br className="hidden md:block" />
-                        Durabilidad garantizada. Rendimiento superior. Instalación precisa.
+                        Ingeniería de alta precisión para sistemas críticos.
+                        Donde el rendimiento no es una opción, es el estándar.
                     </motion.p>
 
                     {/* CTA Buttons */}
                     <motion.div
-                        initial={{ opacity: 0, y: 30 }}
+                        initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.7, delay: 0.3 }}
-                        className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-8"
+                        transition={{ duration: 0.8, delay: 0.3 }}
+                        className="flex flex-col sm:flex-row items-center justify-center gap-8 w-full max-w-3xl"
                     >
-                        <Link href="/catalog" className="osart-button group min-w-[240px]">
-                            Explorar Catálogo
-                            <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                        <Link href="/catalog" className="industrial-button w-full sm:flex-1">
+                            INGRESAR_AL_ARSENAL
+                            <ArrowRight size={20} />
                         </Link>
 
-                        <Link href="/academy" className="osart-button-outline group min-w-[240px]">
-                            Especificaciones Técnicas
-                            <Zap size={18} className="group-hover:rotate-12 transition-transform" />
+                        <Link href="/support" className="osart-button-outline w-full sm:flex-1">
+                            SOPORTE_TÉCNICO_A
+                            <Zap size={18} />
                         </Link>
                     </motion.div>
 
-                    {/* Trust Indicators */}
+                    {/* Hardware Stats */}
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        transition={{ duration: 0.8, delay: 0.5 }}
-                        className="grid grid-cols-3 gap-8 pt-16 max-w-3xl mx-auto border-t border-graphite/10"
+                        transition={{ duration: 1, delay: 0.6 }}
+                        className="grid grid-cols-2 md:grid-cols-4 gap-12 pt-24 w-full border-t border-zinc-900/50 mt-24"
                     >
                         {[
-                            { icon: Shield, label: "Garantía Extendida", value: "24 Meses" },
-                            { icon: Zap, label: "Compatibilidad", value: "99.8%" },
-                            { icon: Award, label: "Certificación", value: "ISO 9001" },
+                            { label: "LATENCIA", value: "0.02ms" },
+                            { label: "PRECISIÓN", value: "99.9%" },
+                            { label: "GARANTÍA", value: "LIFE_T" },
+                            { label: "CERT_ISO", value: "27001" },
                         ].map((item, i) => (
-                            <div key={i} className="flex flex-col items-center gap-3 group">
-                                <div className="w-12 h-12 rounded-xl bg-graphite/5 flex items-center justify-center text-electric-blue group-hover:bg-electric-blue/10 transition-colors">
-                                    <item.icon size={20} strokeWidth={2} />
-                                </div>
-                                <div className="text-center">
-                                    <div className="text-2xl font-bold text-graphite">{item.value}</div>
-                                    <div className="text-xs text-slate-deep/60 font-medium tracking-wide">{item.label}</div>
-                                </div>
+                            <div key={i} className="space-y-2 text-center md:text-left">
+                                <div className="text-[10px] text-zinc-600 font-black uppercase tracking-widest">{item.label}</div>
+                                <div className="text-3xl font-black text-zinc-300 italic tabular-nums group-hover:text-cyan-400 transition-colors">{item.value}</div>
                             </div>
                         ))}
                     </motion.div>
                 </div>
             </div>
-
-            {/* Bottom Fade */}
-            <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-ivory to-transparent" />
         </section>
     );
 }

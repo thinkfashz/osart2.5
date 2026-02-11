@@ -6,16 +6,13 @@ import Link from "next/link";
 
 export default function FinalCTA() {
     return (
-        <section className="py-32 bg-gradient-to-br from-graphite via-midnight to-graphite relative overflow-hidden">
-            {/* Tech Grid Overlay */}
-            <div className="absolute inset-0 bg-tech-grid opacity-5" />
-
-            {/* Gradient Accents */}
-            <div className="absolute top-0 left-0 w-96 h-96 bg-electric-blue/10 rounded-full blur-3xl" />
-            <div className="absolute bottom-0 right-0 w-96 h-96 bg-tech-green/10 rounded-full blur-3xl" />
+        <section className="py-32 bg-zinc-950 relative overflow-hidden">
+            {/* Texture */}
+            <div className="absolute inset-0 opacity-[0.02] pointer-events-none"
+                style={{ backgroundImage: 'radial-gradient(#22d3ee 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
 
             <div className="container mx-auto px-6 relative z-10">
-                <div className="max-w-4xl mx-auto text-center space-y-12">
+                <div className="max-w-4xl mx-auto text-center space-y-16">
 
                     {/* Main Message */}
                     <motion.div
@@ -25,16 +22,16 @@ export default function FinalCTA() {
                         transition={{ duration: 0.7 }}
                         className="space-y-6"
                     >
-                        <h2 className="text-5xl md:text-7xl font-bold tracking-tight text-ivory leading-[1.1]">
-                            Decisión Inteligente.
+                        <h2 className="text-5xl md:text-8xl font-black tracking-tighter text-zinc-100 leading-[0.9] uppercase">
+                            Decisión de
                             <br />
-                            <span className="text-white/40">Inversión Correcta.</span>
+                            <span className="text-zinc-800">Alto Rango.</span>
                         </h2>
 
-                        <p className="text-lg md:text-xl text-white/70 max-w-2xl mx-auto leading-relaxed">
-                            No compare precios. Compare confiabilidad, durabilidad y rendimiento.
+                        <p className="text-[14px] md:text-[16px] text-zinc-500 font-bold uppercase tracking-tight max-w-2xl mx-auto leading-relaxed">
+                            No compare costos unitarios. Evalúe fiabilidad estructural y rendimiento de campo.
                             <br className="hidden md:block" />
-                            Los profesionales eligen OSART.
+                            Los ingenieros soberanos eligen OSART.
                         </p>
                     </motion.div>
 
@@ -44,18 +41,18 @@ export default function FinalCTA() {
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.7, delay: 0.2 }}
-                        className="grid grid-cols-1 md:grid-cols-3 gap-8 py-12"
+                        className="grid grid-cols-1 md:grid-cols-3 gap-4 py-8 border-y border-zinc-900"
                     >
                         {[
-                            { icon: Shield, label: "Garantía 24 Meses" },
-                            { icon: Zap, label: "Envío Express" },
-                            { icon: Shield, label: "Soporte Técnico" },
+                            { icon: Shield, label: "GARANTÍA_ESTRUCTURAL_24M" },
+                            { icon: Zap, label: "LOGÍSTICA_PRIORITARIA" },
+                            { icon: Shield, label: "SOPORTE_SISTÉMICO_DIRECTO" },
                         ].map((item, i) => (
-                            <div key={i} className="flex flex-col items-center gap-3">
-                                <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center text-electric-blue border border-white/10">
-                                    <item.icon size={20} strokeWidth={2} />
+                            <div key={i} className="flex items-center justify-center gap-4 bg-zinc-900/50 p-6 border border-zinc-800">
+                                <div className="text-cyan-400">
+                                    <item.icon size={18} strokeWidth={2.5} />
                                 </div>
-                                <span className="text-sm font-semibold text-white/90 tracking-wide">
+                                <span className="text-[10px] font-black text-zinc-400 tracking-widest uppercase">
                                     {item.label}
                                 </span>
                             </div>
@@ -68,21 +65,21 @@ export default function FinalCTA() {
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.7, delay: 0.3 }}
-                        className="flex flex-col sm:flex-row items-center justify-center gap-6"
+                        className="flex flex-col sm:flex-row items-center justify-center gap-4"
                     >
                         <Link
                             href="/catalog"
-                            className="group bg-ivory text-graphite px-12 py-6 rounded-xl font-bold tracking-wide text-base flex items-center justify-center gap-3 hover:bg-white transition-all duration-300 hover:shadow-showroom active:scale-[0.98] min-w-[280px]"
+                            className="osart-button w-full sm:w-auto min-w-[300px] flex items-center justify-center gap-3"
                         >
-                            Acceder al Catálogo
-                            <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+                            SINCRONIZAR CATÁLOGO
+                            <ArrowRight size={18} />
                         </Link>
 
                         <Link
                             href="/support"
-                            className="group bg-transparent border-2 border-white/20 text-ivory px-12 py-6 rounded-xl font-bold tracking-wide text-base flex items-center justify-center gap-3 hover:bg-white/10 hover:border-white/40 transition-all duration-300 active:scale-[0.98] min-w-[280px]"
+                            className="osart-button-outline w-full sm:w-auto min-w-[300px] flex items-center justify-center gap-3"
                         >
-                            Consultoría Técnica
+                            CONSULTORÍA_TÉCNICA
                         </Link>
                     </motion.div>
 
@@ -92,11 +89,9 @@ export default function FinalCTA() {
                         whileInView={{ opacity: 1 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.7, delay: 0.5 }}
-                        className="text-sm text-white/40 pt-8 border-t border-white/10 max-w-2xl mx-auto"
+                        className="text-[10px] text-zinc-700 font-black uppercase tracking-[0.4em] pt-8"
                     >
-                        Más de 5,000 instalaciones profesionales confían en OSART.
-                        <br />
-                        Únase a la red de ingenieros que eligen precisión.
+                        +8,000 DISPOSITIVOS DESPLEGADOS_EN_PRODUCCIÓN_ACTIVA.
                     </motion.p>
                 </div>
             </div>

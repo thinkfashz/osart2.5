@@ -1,16 +1,11 @@
-import { supabase } from "@/lib/supabase";
+import { productsApi } from "@/lib/api-client";
 import { Product } from "@/types";
 import { safeAction } from "@/lib/security";
 
 export async function getProducts(): Promise<Product[]> {
     const { data, error } = await safeAction(async () => {
-        if (!supabase) return [];
-        const { data, error } = await supabase
-            .from('products')
-            .select('*, variants:product_variants(*)')
-            .order('id', { ascending: true });
-        if (error) throw error;
-        return data;
+        const response = await productsApi.list({ limit: 100 });
+        return response.products;
     }, "Error al obtener catálogo de productos.");
 
     return (data as Product[]) || [];
@@ -18,14 +13,7 @@ export async function getProducts(): Promise<Product[]> {
 
 export async function createProduct(product: Omit<Product, 'id'>): Promise<Product | null> {
     const { data, error } = await safeAction(async () => {
-        if (!supabase) return null;
-        const { data, error } = await supabase
-            .from('products')
-            .insert([product])
-            .select()
-            .single();
-        if (error) throw error;
-        return data;
+        return await productsApi.create(product);
     }, "Error al registrar nuevo producto. Verifique los datos inyectados.");
 
     return data as Product;
@@ -33,15 +21,7 @@ export async function createProduct(product: Omit<Product, 'id'>): Promise<Produ
 
 export async function updateProduct(id: string, updates: Partial<Product>): Promise<Product | null> {
     const { data, error } = await safeAction(async () => {
-        if (!supabase) return null;
-        const { data, error } = await supabase
-            .from('products')
-            .update(updates)
-            .eq('id', id)
-            .select()
-            .single();
-        if (error) throw error;
-        return data;
+        return await productsApi.update(id, updates);
     }, "Error al actualizar configuración de producto.");
 
     return data as Product;
@@ -49,12 +29,7 @@ export async function updateProduct(id: string, updates: Partial<Product>): Prom
 
 export async function deleteProduct(id: string): Promise<void> {
     await safeAction(async () => {
-        if (!supabase) return;
-        const { error } = await supabase
-            .from('products')
-            .delete()
-            .eq('id', id);
-        if (error) throw error;
+        await productsApi.delete(id);
     }, "Error al eliminar módulo de producto. Acceso restringido o fallo de red.");
 }
 

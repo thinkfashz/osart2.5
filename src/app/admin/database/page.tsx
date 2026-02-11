@@ -19,10 +19,13 @@ import {
     Terminal,
     Cpu,
     Globe,
-    Users
+    Users,
+    Layers,
+    TrendingUp
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import { statsApi } from "@/lib/api-client";
 import Pagination from "@/components/ui/Pagination";
 
 export default function DatabaseConsolePage() {
@@ -40,24 +43,23 @@ export default function DatabaseConsolePage() {
 
     const checkConnection = async () => {
         setStatus("checking");
-        if (!supabase) {
-            setStatus("disconnected");
-            return;
-        }
         const start = performance.now();
         try {
-            const { data, error } = await supabase!.from("products").select("count", { count: 'exact', head: true });
+            await statsApi.getDashboardStats();
             const end = performance.now();
-            if (error) throw error;
             setLatency(Math.round(end - start));
             setStatus("connected");
 
             // Mocking table stats for visual purpose based on DB discovery
             setTableStats([
-                { name: "profiles", count: 1, color: "bg-blue-500", icon: Users },
-                { name: "products", count: 12, color: "bg-gold", icon: Database },
-                { name: "orders", count: 4, color: "bg-cyber-red", icon: Activity },
-                { name: "activity_logs", count: 85, color: "bg-green-500", icon: Terminal }
+                { name: "profiles", count: 12, color: "bg-blue-500", icon: Users },
+                { name: "products", count: 50, color: "bg-gold", icon: Database },
+                { name: "orders", count: 24, color: "bg-cyber-red", icon: Activity },
+                { name: "activity_logs", count: 156, color: "bg-green-500", icon: Terminal },
+                { name: "categories", count: 8, color: "bg-purple-500", icon: Layers },
+                { name: "promotions", count: 5, color: "bg-orange-500", icon: TrendingUp },
+                { name: "inventory_alerts", count: 3, color: "bg-cyber-red", icon: ShieldCheck },
+                { name: "api_keys", count: 2, color: "bg-gold", icon: Key },
             ]);
         } catch (e) {
             setStatus("disconnected");

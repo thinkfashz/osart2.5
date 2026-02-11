@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import PremiumProductCard from "@/components/products/PremiumProductCard";
 import { dummyProducts } from "@/data/dummyProducts";
 import { supabase } from "@/lib/supabase";
@@ -5,87 +8,109 @@ import PremiumHero from "@/components/home/PremiumHero";
 import BenefitsSection from "@/components/home/BenefitsSection";
 import SocialProofSection from "@/components/home/SocialProofSection";
 import FinalCTA from "@/components/home/FinalCTA";
+import { motion } from "framer-motion";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 
 import { Product } from "@/types";
 
-// Global Revalidation: Optimization for Production
-export const revalidate = 60;
 
-async function getProducts(): Promise<Product[]> {
-  try {
-    if (!supabase) return dummyProducts.slice(0, 8);
-    const { data, error } = await supabase
-      .from("products")
-      .select("*")
-      .order('created_at', { ascending: false })
-      .limit(8);
+export default function Home() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
 
-    if (error || !data || data.length === 0) return dummyProducts.slice(0, 8);
-    return data;
-  } catch (e) {
-    return dummyProducts.slice(0, 8);
-  }
-}
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        if (!supabase) {
+          setProducts(dummyProducts.slice(0, 8));
+          setLoading(false);
+          return;
+        }
+        const { data, error } = await supabase
+          .from("products")
+          .select("*")
+          .order('created_at', { ascending: false })
+          .limit(8);
 
-export default async function Home() {
-  const products = await getProducts();
+        if (error || !data || data.length === 0) {
+          setProducts(dummyProducts.slice(0, 8));
+        } else {
+          setProducts(data);
+        }
+      } catch (e) {
+        setProducts(dummyProducts.slice(0, 8));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
 
   return (
-    <div className="flex flex-col gap-0 bg-ivory min-h-screen selection:bg-electric-blue selection:text-white">
+    <div className="flex flex-col gap-0 bg-zinc-950 min-h-screen">
 
       {/* 1. PREMIUM HERO - Professional Gateway */}
       <PremiumHero />
 
       {/* 2. BENEFITS SECTION - Engineering Precision */}
-      <BenefitsSection />
+      <div className="relative">
+        <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-zinc-800 to-transparent" />
+        <BenefitsSection />
+      </div>
 
       {/* 3. FEATURED PRODUCTS - Professional Arsenal */}
-      <section className="py-32 bg-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-tech-grid opacity-10" />
+      <section className="py-24 bg-zinc-950 relative overflow-hidden">
+        {/* Background Grid Accent */}
+        <div className="absolute inset-0 opacity-[0.02] pointer-events-none"
+          style={{ backgroundImage: 'linear-gradient(#22d3ee 1px, transparent 1px), linear-gradient(90deg, #22d3ee 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
 
         <div className="container mx-auto px-6 relative z-10">
-          <div className="max-w-3xl mx-auto text-center mb-20 space-y-6">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-graphite/5 border border-graphite/10">
-              <span className="text-xs font-semibold tracking-wide text-graphite">
-                Componentes Destacados
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="max-w-4xl mx-auto text-center mb-24 space-y-12"
+          >
+            <div className="inline-flex items-center gap-4 px-6 py-2 bg-zinc-900 border border-zinc-800">
+              <div className="w-2 h-2 bg-cyan-400 animate-pulse" />
+              <span className="text-[10px] font-black tracking-[0.3em] text-zinc-400">
+                08_SELECCIÓN_KRÍTICA
               </span>
             </div>
 
-            <h2 className="text-5xl md:text-6xl font-bold tracking-tight text-graphite">
-              Catálogo Profesional.
+            <h2 className="text-6xl md:text-8xl font-black tracking-tighter text-zinc-100 italic uppercase leading-[0.9]">
+              ARSENAL
               <br />
-              <span className="text-slate-deep/50">Calidad Garantizada.</span>
+              <span className="text-zinc-700">DESTACADO.</span>
             </h2>
 
-            <p className="text-lg text-slate-deep/70 leading-relaxed">
-              Cada componente es seleccionado por su rendimiento excepcional
-              <br className="hidden md:block" />
-              y compatibilidad verificada con sistemas industriales.
+            <p className="text-lg text-zinc-500 max-w-2xl mx-auto font-bold uppercase tracking-tight">
+              Componentes certificados bajo protocolos de estrés industrial.
+              Resultados garantizados en entornos de alta exigencia.
             </p>
-          </div>
+          </motion.div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-zinc-800 p-px max-w-7xl mx-auto border border-zinc-800">
             {products.map((product: Product) => (
-              <PremiumProductCard key={product.id} product={product} />
+              <div key={product.id} className="bg-zinc-950 p-4">
+                <PremiumProductCard product={product} />
+              </div>
             ))}
           </div>
 
           {/* View All Link */}
-          <div className="text-center mt-16">
-            <a
+          <div className="text-center mt-24">
+            <Link
               href="/catalog"
-              className="inline-flex items-center gap-3 text-base font-semibold text-electric-blue hover:gap-4 transition-all group"
+              className="inline-flex items-center gap-6 text-xs font-black tracking-[0.4em] text-zinc-500 hover:text-cyan-400 transition-all uppercase group italic"
             >
-              Ver Catálogo Completo
-              <svg
-                className="w-5 h-5 group-hover:translate-x-1 transition-transform"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-              </svg>
-            </a>
+              VER_INVENTARIO_ESTRATÉGICO
+              <motion.div animate={{ x: [0, 5, 0] }} transition={{ repeat: Infinity, duration: 1.5 }}>
+                <ArrowRight size={20} />
+              </motion.div>
+            </Link>
           </div>
         </div>
       </section>

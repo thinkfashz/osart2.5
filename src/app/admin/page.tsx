@@ -16,6 +16,9 @@ import {
     Clock,
     Terminal
 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { statsApi } from "@/lib/api-client";
+import { formatCurrency } from "@/lib/utils";
 import RecentOrders from "@/components/admin/RecentOrders";
 import SupabaseConnectionPanel from "@/components/admin/SupabaseConnectionPanel";
 import SecurityAuditor from "@/components/admin/SecurityAuditor";
@@ -24,22 +27,58 @@ import EventTerminal from "@/components/admin/EventTerminal";
 import PaymentProvidersPanel from "@/components/admin/PaymentProvidersPanel";
 
 export default function AdminDashboard() {
-    const stats = [
-        { label: "VENTAS_TOTALES", value: "$124,500.00", increase: "12%", icon: TrendingUp, color: "text-cyan-400" },
-        { label: "USUARIOS_ACTIVOS", value: "1,240", increase: "5%", icon: Users, color: "text-zinc-100" },
-        { label: "INVENTARIO_SKU", value: "450", increase: "2%", icon: Package, color: "text-orange-500" },
-        { label: "PEDIDOS_COLA", value: "18", increase: "3", icon: ShoppingBag, color: "text-cyber-red" },
+    const { data: statsData, isLoading } = useQuery({
+        queryKey: ["admin-stats"],
+        queryFn: () => statsApi.getDashboardStats(),
+        refetchInterval: 30000, // Refresh every 30s
+    });
+
+    const metrics = [
+        {
+            label: "VENTAS_TOTALES",
+            value: statsData ? formatCurrency(statsData.totalSales) : "---",
+            increase: "REAL_TIME",
+            icon: TrendingUp,
+            color: "text-cyan-400"
+        },
+        {
+            label: "USUARIOS_ACTIVOS",
+            value: statsData ? statsData.activeUsers.toLocaleString() : "---",
+            increase: "LIVE_DATA",
+            icon: Users,
+            color: "text-zinc-100"
+        },
+        {
+            label: "INVENTARIO_SKU",
+            value: statsData ? statsData.totalInventory.toLocaleString() : "---",
+            increase: "SYST_STOCK",
+            icon: Package,
+            color: "text-orange-500"
+        },
+        {
+            label: "PEDIDOS_COLA",
+            value: statsData ? statsData.pendingOrders.toString() : "---",
+            increase: "CRITICAL",
+            icon: ShoppingBag,
+            color: "text-cyber-red"
+        },
     ];
 
     return (
         <div className="space-y-12 pb-20">
             {/* Metrics Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-1">
-                {stats.map((stat, i) => (
+                {metrics.map((stat, i) => (
                     <div
                         key={i}
-                        className="bg-zinc-900 border border-zinc-800 p-8 hover:bg-zinc-800 transition-colors group"
+                        className={cn(
+                            "bg-zinc-900 border border-zinc-800 p-8 hover:bg-zinc-800 transition-colors group relative overflow-hidden",
+                            isLoading && "animate-pulse"
+                        )}
                     >
+                        {isLoading && (
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.02] to-transparent -translate-x-full animate-[shimmer_2s_infinite]" />
+                        )}
                         <div className="flex items-center justify-between mb-6">
                             <span className="text-[10px] font-mono font-black tracking-[0.3em] text-zinc-500 uppercase">{stat.label}</span>
                             <stat.icon size={16} className={cn("transition-colors", stat.color)} />
@@ -50,7 +89,7 @@ export default function AdminDashboard() {
                                     {stat.value}
                                 </div>
                                 <div className="mt-2 text-[10px] font-mono text-zinc-600 uppercase font-black tracking-widest">
-                                    DIF_PERIODO: <span className="text-zinc-400">+{stat.increase}</span>
+                                    ESTADO: <span className="text-zinc-400">{stat.increase}</span>
                                 </div>
                             </div>
                             <div className="w-10 h-[2px] bg-zinc-800 group-hover:bg-cyan-400 transition-colors" />

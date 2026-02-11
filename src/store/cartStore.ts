@@ -4,10 +4,12 @@ import { CartItem, Product } from '@/types';
 
 interface CartState {
     items: CartItem[];
+    isOpen: boolean;
     addItem: (product: Product) => void;
     removeItem: (productId: string) => void;
     updateQuantity: (productId: string, quantity: number) => void;
     clearCart: () => void;
+    toggleCart: (open?: boolean) => void;
     total: number;
     calculateTotal: () => void;
 }
@@ -17,6 +19,9 @@ export const useCartStore = create<CartState>()(
         (set, get) => ({
             items: [],
             total: 0,
+            isOpen: false,
+
+            toggleCart: (open?: boolean) => set({ isOpen: open !== undefined ? open : !get().isOpen }),
 
             addItem: (product: Product) => {
                 const currentItems = get().items;
