@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { ShoppingCart, ArrowRight, CheckCircle2, Cpu } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { formatCurrency } from "@/lib/utils";
 
 interface Product {
     id: string;

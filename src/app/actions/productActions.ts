@@ -1,11 +1,19 @@
 import { productsApi } from "@/lib/api-client";
 import { Product } from "@/types";
 import { safeAction } from "@/lib/security";
+import { supabase } from "@/lib/supabase";
 
 export async function getProducts(): Promise<Product[]> {
     const { data, error } = await safeAction(async () => {
         const response = await productsApi.list({ limit: 100 });
-        return response.products;
+        return response.data.map(p => ({
+            ...p,
+            description: p.description || '',
+            category: p.category || '',
+            image_url: p.imageUrl || '',
+            created_at: p.createdAt,
+            user_id: p.userId
+        }));
     }, "Error al obtener catálogo de productos.");
 
     return (data as Product[]) || [];
@@ -13,7 +21,15 @@ export async function getProducts(): Promise<Product[]> {
 
 export async function createProduct(product: Omit<Product, 'id'>): Promise<Product | null> {
     const { data, error } = await safeAction(async () => {
-        return await productsApi.create(product);
+        const result = await productsApi.create(product);
+        return {
+            ...result,
+            description: result.description || '',
+            category: result.category || '',
+            image_url: result.imageUrl || '',
+            created_at: result.createdAt,
+            user_id: result.userId
+        };
     }, "Error al registrar nuevo producto. Verifique los datos inyectados.");
 
     return data as Product;
@@ -21,7 +37,15 @@ export async function createProduct(product: Omit<Product, 'id'>): Promise<Produ
 
 export async function updateProduct(id: string, updates: Partial<Product>): Promise<Product | null> {
     const { data, error } = await safeAction(async () => {
-        return await productsApi.update(id, updates);
+        const result = await productsApi.update(id, updates);
+        return {
+            ...result,
+            description: result.description || '',
+            category: result.category || '',
+            image_url: result.imageUrl || '',
+            created_at: result.createdAt,
+            user_id: result.userId
+        };
     }, "Error al actualizar configuración de producto.");
 
     return data as Product;

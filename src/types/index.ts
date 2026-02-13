@@ -48,6 +48,7 @@ export interface Product {
     is_active?: boolean;
     metadata?: Record<string, any>;
     variants?: ProductVariant[];
+    user_id?: string;
 }
 
 export interface Promotion {

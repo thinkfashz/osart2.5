@@ -10,8 +10,9 @@ import { ArrowLeft, Filter, Grid3x3, Navigation, Activity, Cpu, AlertTriangle } 
 import { Product } from "@/types";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { Suspense } from "react";
 
-export default function CatalogPage() {
+function CatalogContent() {
     const searchParams = useSearchParams();
     const search = searchParams.get("search") || "";
     const category = searchParams.get("category") || "";
@@ -21,7 +22,14 @@ export default function CatalogPage() {
         queryFn: () => productsApi.list({ search, category }),
     });
 
-    const products = data?.data || (isError ? (dummyProducts as Product[]) : []);
+    const products = (data?.data?.map(p => ({
+        ...p,
+        description: p.description || '',
+        category: p.category || '',
+        image_url: p.imageUrl || '',
+        created_at: p.createdAt,
+        user_id: p.userId
+    })) as Product[]) || (isError ? dummyProducts : []);
     const totalItems = data?.meta?.total ?? products.length;
 
     const loading = isLoading;
@@ -136,5 +144,19 @@ export default function CatalogPage() {
 
             </div>
         </div>
+    );
+}
+
+export default function CatalogPage() {
+    return (
+        <Suspense fallback={
+            <div className="bg-zinc-950 text-zinc-100 min-h-screen pt-32 pb-32 flex items-center justify-center">
+                <div className="animate-pulse font-mono uppercase tracking-[0.5em] text-zinc-500">
+                    Sincronizando_Protocolo_Suministros...
+                </div>
+            </div>
+        }>
+            <CatalogContent />
+        </Suspense>
     );
 }

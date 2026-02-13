@@ -10,6 +10,7 @@ export interface Product {
     imageUrl: string | null;
     specs: any;
     createdAt: string;
+    userId?: string;
 }
 
 export interface ProductsResponse {
